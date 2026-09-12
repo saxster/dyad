@@ -206,7 +206,7 @@ Reference: `ANVIL/.anvil/specs/bundle.json` (keys: `approvalStatus, approvedAt, 
       RED: insert + re-select one row per table through drizzle against a tmp sqlite db (copy the setup from `src/db.test.ts`).
       GREEN: schema + `npm run db:generate`; commit the generated migration.
 
-- [ ] **T2.2 Contracts.**
+- [x] **T2.2 Contracts.**
       Files: `src/ipc/contracts/governance_contracts.ts` following the existing contracts module style (grep `IpcContract` in `src/ipc/contracts/`).
       Define: `saveSpecBundle`, `getSpecBundle(appId)`, `listSpecBundleHistory(appId)`, `approveSpecBundle(appId, {decision, feedback?})`, `getGovernanceRun(runId)`. No test yet (typed shells) — the handlers tests exercise them.
 
