@@ -215,7 +215,7 @@ Reference: `ANVIL/.anvil/specs/bundle.json` (keys: `approvalStatus, approvedAt, 
       RED: `it("saves a bundle via IPC and returns the persisted artifact version")` using `getRegisteredHandlerForTesting`; then `it("gets back the saved bundle")`.
       GREEN: handler writes via ArtifactStore + drizzle row; returns `{ bundle, artifactVersion }`.
 
-- [ ] **T2.4 Handler — approve with feedback loop.**
+- [x] **T2.4 Handler — approve with feedback loop.**
       Same files. RED: `it("approves a pending bundle and stamps approvedAt")`; `it("reject routes status back to draft and stores feedback")` (feedback persisted in bundle `provenance.lastRejectionFeedback`).
       GREEN: uses `nextApprovalStatus` from T1.3 (single source of truth).
 

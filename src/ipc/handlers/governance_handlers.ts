@@ -3,7 +3,10 @@ import { db } from "@/db";
 import { apps, specBundles } from "@/db/schema";
 import { DyadError, DyadErrorKind } from "@/errors/dyad_error";
 import { ArtifactStore } from "@/governance/artifacts/artifact_store";
-import type { SpecBundle } from "@/governance/core/spec_bundle_schemas";
+import {
+  nextApprovalStatus,
+  type SpecBundle,
+} from "@/governance/core/spec_bundle_schemas";
 import { governanceContracts } from "../contracts/governance_contracts";
 import { createTypedHandler } from "./base";
 
@@ -57,6 +60,59 @@ export function registerGovernanceHandlers(): void {
         return null;
       }
       return { bundle, artifactVersion: row.artifactVersion };
+    },
+  );
+
+  createTypedHandler(
+    governanceContracts.approveSpecBundle,
+    async (_event, { appId, decision, feedback }) => {
+      const { store } = await getArtifactStoreForApp(appId);
+      let current: SpecBundle;
+      try {
+        current = await store.loadBundle();
+      } catch {
+        throw new DyadError(
+          `no spec bundle saved for app ${appId}`,
+          DyadErrorKind.NotFound,
+        );
+      }
+
+      const approvalEvent =
+        decision === "approve"
+          ? { type: "approve" as const, approvedAt: new Date().toISOString() }
+          : { type: "reject" as const };
+      const next = nextApprovalStatus(current.approvalStatus, approvalEvent);
+      if ("error" in next) {
+        throw new DyadError(next.error, DyadErrorKind.Precondition);
+      }
+
+      let updated: SpecBundle = { ...current, approvalStatus: next.status };
+      if (decision === "approve") {
+        updated = { ...updated, approvedAt: approvalEvent.approvedAt };
+      } else {
+        updated = {
+          ...updated,
+          approvedAt: undefined,
+          provenance: feedback
+            ? { ...current.provenance, lastRejectionFeedback: feedback }
+            : current.provenance,
+        };
+      }
+
+      const stamped = await store.saveBundle(updated);
+      db.insert(specBundles)
+        .values({
+          appId,
+          artifactVersion: stamped.version,
+          approvalStatus: stamped.approvalStatus,
+          approvedAt: stamped.approvedAt ? new Date(stamped.approvedAt) : null,
+        })
+        .run();
+
+      return {
+        approvalStatus: stamped.approvalStatus,
+        approvedAt: stamped.approvedAt ?? null,
+      };
     },
   );
 }

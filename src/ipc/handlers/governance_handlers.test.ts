@@ -77,3 +77,69 @@ describe("governance handlers", () => {
     expect(got).toBeNull();
   });
 });
+
+describe("governance approval handler", () => {
+  let harness: HandlerTestHarness;
+  let appId: number;
+  let appPath: string;
+  let pendingBundle: SpecBundle;
+
+  beforeEach(async () => {
+    harness = setupHandlerTestHarness();
+    registerGovernanceHandlers();
+    appPath = await mkdtemp(join(tmpdir(), "gov-approval-"));
+    const app = harness.db
+      .insert(apps)
+      .values({ name: "Approval App", path: appPath })
+      .returning({ id: apps.id })
+      .get();
+    appId = app.id;
+    const bundle = parseSpecBundle(readFileSync(FIXTURE_PATH, "utf8"));
+    pendingBundle = { ...bundle, approvalStatus: "pending_approval" };
+    await harness.invokeHandler("governance:save-spec-bundle", {
+      appId,
+      bundle: pendingBundle,
+    });
+  });
+
+  afterEach(async () => {
+    harness.dispose();
+    await rm(appPath, { recursive: true, force: true });
+  });
+
+  it("approves a pending bundle and stamps approvedAt", async () => {
+    const result = await harness.invokeHandler<{
+      approvalStatus: string;
+      approvedAt: string | null;
+    }>("governance:approve-spec-bundle", { appId, decision: "approve" });
+
+    expect(result.approvalStatus).toBe("approved");
+    expect(result.approvedAt).toBeTruthy();
+
+    const got = await harness.invokeHandler<{
+      bundle: SpecBundle;
+    } | null>("governance:get-spec-bundle", { appId });
+    expect(got?.bundle.approvalStatus).toBe("approved");
+    expect(typeof got?.bundle.approvedAt).toBe("string");
+  });
+
+  it("reject routes status back to draft and stores feedback", async () => {
+    const result = await harness.invokeHandler<{
+      approvalStatus: string;
+    }>("governance:approve-spec-bundle", {
+      appId,
+      decision: "reject",
+      feedback: "stories lack verification contracts",
+    });
+
+    expect(result.approvalStatus).toBe("draft");
+
+    const got = await harness.invokeHandler<{
+      bundle: SpecBundle;
+    } | null>("governance:get-spec-bundle", { appId });
+    expect(got?.bundle.approvalStatus).toBe("draft");
+    expect(got?.bundle.provenance.lastRejectionFeedback).toBe(
+      "stories lack verification contracts",
+    );
+  });
+});
