@@ -289,7 +289,7 @@ Reference: `ANVIL/anvil-macOS/Core/Workflow/LeanLane.swift:14-42` (exact signal 
       GREEN: pre-dispatch check in the chat stream handler (additive, behind `enableGovernance` + lane === governed).
       Verify: integration test passes.
 
-- [ ] **T4.6 Spec diff engine.**
+- [x] **T4.6 Spec diff engine.**
       Seam S1. Files: test + impl `src/governance/core/spec_diff.ts`.
       RED: `it("classifies added/removed/modified stories between bundle versions")` (match on `storyId`; modified = any criterion/narrative change); `it("renders a markdown diff")` containing `+ US-3` / `- US-2` / `~ US-1`.
       GREEN: `diffBundles(a, b)`, `renderSpecDiff(diff)`.
