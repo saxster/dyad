@@ -163,7 +163,7 @@ Progress: check the box when the task's commit exists and its verify commands pa
 
 Reference: `ANVIL/.anvil/specs/bundle.json` (keys: `approvalStatus, approvedAt, createdAt, design, id, manifest, nonFunctionalRequirements, notDoingList, provenance, rawIntent, releaseReadiness, riskRegister, stories, strategy, threatModel, verificationPlan, version`).
 
-- [ ] **T1.1 Story + criterion schemas.**
+- [x] **T1.1 Story + criterion schemas.**
       Seam S1. Files: test `src/governance/core/spec_bundle_schemas.test.ts`, impl `src/governance/core/spec_bundle_schemas.ts`.
       RED: `it("accepts an EARS story with a verification contract")` — fixture with `id: "US-1"`, `title`, `narrative` ("As a… I want… So that…"), `criteria: [{ id: "AC-1", given, when, then, verificationContract: "npm test -- foo" }]`, optional `priority: "must"|"should"|"could"|"wont"` (MoSCoW). Second test: `it("rejects a criterion missing given/when/then")`.
       GREEN: zod schemas `EarsCriterionSchema`, `UserStorySchema`. Export types.
