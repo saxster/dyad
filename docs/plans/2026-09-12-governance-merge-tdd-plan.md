@@ -210,7 +210,7 @@ Reference: `ANVIL/.anvil/specs/bundle.json` (keys: `approvalStatus, approvedAt, 
       Files: `src/ipc/contracts/governance_contracts.ts` following the existing contracts module style (grep `IpcContract` in `src/ipc/contracts/`).
       Define: `saveSpecBundle`, `getSpecBundle(appId)`, `listSpecBundleHistory(appId)`, `approveSpecBundle(appId, {decision, feedback?})`, `getGovernanceRun(runId)`. No test yet (typed shells) — the handlers tests exercise them.
 
-- [ ] **T2.3 Handlers — save/get round-trip.**
+- [x] **T2.3 Handlers — save/get round-trip.**
       Seam S4. Files: test `src/ipc/handlers/governance_handlers.test.ts`, impl `src/ipc/handlers/governance_handlers.ts` (+ call `registerGovernanceHandlers()` where siblings register — grep `registerChatStreamHandlers`).
       RED: `it("saves a bundle via IPC and returns the persisted artifact version")` using `getRegisteredHandlerForTesting`; then `it("gets back the saved bundle")`.
       GREEN: handler writes via ArtifactStore + drizzle row; returns `{ bundle, artifactVersion }`.
