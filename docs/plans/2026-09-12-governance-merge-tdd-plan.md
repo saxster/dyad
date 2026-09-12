@@ -269,12 +269,12 @@ Reference: `ANVIL/anvil-macOS/Core/Workflow/LeanLane.swift:14-42` (exact signal 
       GREEN: export `SPEC_MODE_SYSTEM_PROMPT`, wire where `PLAN_MODE_SYSTEM_PROMPT` is selected when `enableGovernance` (keep old prompt file untouched for non-governed path).
       Verify: snapshot written and committed.
 
-- [ ] **T4.2 `write_spec` tool — schema + persistence.**
+- [x] **T4.2 `write_spec` tool — schema + persistence.**
       Seam S5. Files: tool `src/pro/main/ipc/handlers/local_agent/tools/write_spec.ts` (follow `run_build.ts` structure: zod input, `name`, `description`, `defaultConsent: "always"`, `modifiesState: true`, `buildXml`, `execute`), test colocated.
       RED: `it("persists a valid spec bundle draft and returns artifact version")` with fake ctx (`appId`, `appPath` = tmp dir) → bundle.json + requirements.md exist (reuse T1.6 store), drizzle row created (use the test-db harness), status `pending_approval`.
       GREEN: parse via zod; save; return summary string for the model.
 
-- [ ] **T4.3 `write_spec` — rejection path.**
+- [x] **T4.3 `write_spec` — rejection path.**
       Same files. RED: `it("returns a validation error the model can fix when stories lack criteria")` — DyadError kind Validation, message lists the failing paths.
       GREEN: zod error formatting.
 
