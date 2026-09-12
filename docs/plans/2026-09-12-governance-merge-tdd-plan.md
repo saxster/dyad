@@ -190,7 +190,7 @@ Reference: `ANVIL/.anvil/specs/bundle.json` (keys: `approvalStatus, approvedAt, 
       RED: `it("writes bundle.json and loads it back")` with root = `await fs.mkdtemp(...)`: `saveBundle(root, bundle)` then `loadBundle(root)` deep-equals. Also asserts file is written to `<root>/.dyad/specs/bundle.json`.
       GREEN: class with injected root path defaulting to app path; atomic write (tmp file + rename).
 
-- [ ] **T1.7 ArtifactStore — version history.**
+- [x] **T1.7 ArtifactStore — version history.**
       Same files. RED: `it("snapshots each save into history with a version stamp")` — save v1, mutate, save v2 → `listHistory(root)` returns two entries with `version` increasing and frozen v1 content.
       GREEN: history under `.dyad/specs/history/<version>-<id>.json`.
 

@@ -39,4 +39,29 @@ describe("ArtifactStore", () => {
     );
     expect(await store.loadBundle()).toEqual(bundle);
   });
+
+  it("snapshots each save into history with a version stamp", async () => {
+    const store = await makeStore();
+    const v1 = parseSpecBundle(readFileSync(FIXTURE_PATH, "utf8"));
+
+    await store.saveBundle(v1);
+
+    const mutated = parseSpecBundle(readFileSync(FIXTURE_PATH, "utf8"));
+    mutated.stories = [
+      {
+        ...mutated.stories[0],
+        title: "Mutated title",
+      },
+      ...mutated.stories.slice(1),
+    ];
+
+    await store.saveBundle(mutated);
+
+    const history = await store.listHistory();
+    expect(history.map((entry) => entry.version)).toEqual([1, 2]);
+    expect(history[0].bundle.stories[0].title).toBe(
+      "Maintainer Export Deterministic Verification Scripts",
+    );
+    expect(history[1].bundle.stories[0].title).toBe("Mutated title");
+  });
 });
