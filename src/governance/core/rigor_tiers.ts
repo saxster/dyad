@@ -67,3 +67,18 @@ export function scoreRigorAxes(
     blastRadius: countHits(touched, BLAST_RADIUS_PATTERNS),
   };
 }
+
+export type RigorTier = "surgical" | "standard" | "architectural";
+
+export function classifyTier(score: number, override?: RigorTier): RigorTier {
+  if (override) {
+    return override;
+  }
+  if (score <= 3) {
+    return "surgical";
+  }
+  if (score <= 7) {
+    return "standard";
+  }
+  return "architectural";
+}

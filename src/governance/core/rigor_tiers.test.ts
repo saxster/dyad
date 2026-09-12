@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { scoreRigorAxes } from "./rigor_tiers";
+import { classifyTier, scoreRigorAxes } from "./rigor_tiers";
 
 describe("scoreRigorAxes", () => {
   it.each([
@@ -68,5 +68,23 @@ describe("scoreRigorAxes", () => {
     },
   ])("$name", ({ prompt, context, expected }) => {
     expect(scoreRigorAxes(prompt, context)).toEqual(expected);
+  });
+});
+
+describe("classifyTier", () => {
+  it.each([
+    { score: 0, expected: "surgical" },
+    { score: 3, expected: "surgical" },
+    { score: 4, expected: "standard" },
+    { score: 7, expected: "standard" },
+    { score: 8, expected: "architectural" },
+    { score: 12, expected: "architectural" },
+  ])("composite $score maps to $expected", ({ score, expected }) => {
+    expect(classifyTier(score)).toBe(expected);
+  });
+
+  it("an explicit user override wins over the score band", () => {
+    expect(classifyTier(10, "surgical")).toBe("surgical");
+    expect(classifyTier(1, "architectural")).toBe("architectural");
   });
 });

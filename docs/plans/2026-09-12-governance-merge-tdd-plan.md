@@ -246,7 +246,7 @@ Reference: `ANVIL/anvil-macOS/Core/Workflow/LeanLane.swift:14-42` (exact signal 
       RED: table-driven — prompts mentioning auth/payments/migrations raise Security Sensitivity; "rewrite the data layer" raises Domain Breadth; first-ever mention of unknown subsystem raises Novelty (v1: keyword `unfamiliar|new integration|never`); touching `src/db|migrations|package.json` raises Blast Radius. Each axis clamps 0–3.
       GREEN: `scoreRigorAxes(prompt, context): { breadth, security, novelty, blastRadius }`.
 
-- [ ] **T3.4 Tier mapping.**
+- [x] **T3.4 Tier mapping.**
       Same files. RED: composite 0–3 → `surgical`, 4–7 → `standard`, 8–12 → `architectural`; explicit user override wins.
       GREEN: `classifyTier(score, override?)`.
 
