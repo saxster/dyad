@@ -173,7 +173,7 @@ Reference: `ANVIL/.anvil/specs/bundle.json` (keys: `approvalStatus, approvedAt, 
       Same files. RED: `it("round-trips a full bundle through parse→serialize→parse")` using a fixture derived from the real Anvil bundle (copy to `src/governance/__fixtures__/spec_bundle.fixture.json`, sanitize project-specific strings). Assert the second parse deep-equals the first.
       GREEN: `SpecBundleSchema` with all 17 keys; `parseSpecBundle(json)`, `serializeSpecBundle(bundle)`.
 
-- [ ] **T1.3 Approval status transitions.**
+- [x] **T1.3 Approval status transitions.**
       Same files. RED: table-driven `it.each` — `draft → pending_approval → approved` allowed; `approved → draft` requires `force` flag; `approved` requires `approvedAt`. GREEN: `nextApprovalStatus(current, event)` pure reducer returning `{ status } | { error }`.
 
 - [ ] **T1.4 requirements.md serializer.**

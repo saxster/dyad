@@ -1,8 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import type { ApprovalEvent, ApprovalStatus } from "./spec_bundle_schemas";
 import {
   EarsCriterionSchema,
+  nextApprovalStatus,
   parseSpecBundle,
   serializeSpecBundle,
   UserStorySchema,
@@ -131,5 +133,55 @@ describe("SpecBundleSchema round-trip", () => {
     const parsed = parseSpecBundle(raw);
 
     expect(Object.keys(parsed).sort()).toEqual(BUNDLE_KEYS);
+  });
+});
+
+describe("nextApprovalStatus", () => {
+  const cases: {
+    name: string;
+    current: ApprovalStatus;
+    event: ApprovalEvent;
+    expected: unknown;
+  }[] = [
+    {
+      name: "draft → pending_approval on submit",
+      current: "draft",
+      event: { type: "submit" },
+      expected: { status: "pending_approval" },
+    },
+    {
+      name: "pending_approval → approved on approve with approvedAt",
+      current: "pending_approval",
+      event: { type: "approve", approvedAt: "2026-09-12T00:00:00Z" },
+      expected: { status: "approved" },
+    },
+    {
+      name: "approve without approvedAt is rejected",
+      current: "pending_approval",
+      event: { type: "approve" },
+      expected: { error: expect.stringContaining("approvedAt") },
+    },
+    {
+      name: "approved → draft without force is rejected",
+      current: "approved",
+      event: { type: "reject" },
+      expected: { error: expect.stringContaining("force") },
+    },
+    {
+      name: "approved → draft with force is allowed",
+      current: "approved",
+      event: { type: "reject", force: true },
+      expected: { status: "draft" },
+    },
+    {
+      name: "draft → approved directly is rejected",
+      current: "draft",
+      event: { type: "approve", approvedAt: "2026-09-12T00:00:00Z" },
+      expected: { error: expect.any(String) },
+    },
+  ];
+
+  it.each(cases)("$name", ({ current, event, expected }) => {
+    expect(nextApprovalStatus(current, event)).toEqual(expected);
   });
 });

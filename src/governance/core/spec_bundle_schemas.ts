@@ -192,3 +192,45 @@ export function parseSpecBundle(json: unknown): SpecBundle {
 export function serializeSpecBundle(bundle: SpecBundle): string {
   return JSON.stringify(bundle, null, 2);
 }
+
+export type ApprovalStatus = "draft" | "pending_approval" | "approved";
+
+export type ApprovalEvent =
+  | { type: "submit" }
+  | { type: "approve"; approvedAt?: string }
+  | { type: "reject"; force?: boolean };
+
+export type ApprovalTransitionResult =
+  | { status: ApprovalStatus }
+  | { error: string };
+
+export function nextApprovalStatus(
+  current: ApprovalStatus,
+  event: ApprovalEvent,
+): ApprovalTransitionResult {
+  switch (event.type) {
+    case "submit":
+      if (current !== "draft") {
+        return { error: `cannot submit from status "${current}"` };
+      }
+      return { status: "pending_approval" };
+    case "approve":
+      if (current !== "pending_approval") {
+        return {
+          error: `cannot approve from status "${current}"; must go through pending_approval`,
+        };
+      }
+      if (!event.approvedAt) {
+        return { error: "approving requires an approvedAt timestamp" };
+      }
+      return { status: "approved" };
+    case "reject":
+      if (current === "approved" && !event.force) {
+        return {
+          error:
+            "moving an approved bundle back to draft requires the force flag",
+        };
+      }
+      return { status: "draft" };
+  }
+}
