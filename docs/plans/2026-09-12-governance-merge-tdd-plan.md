@@ -219,7 +219,7 @@ Reference: `ANVIL/.anvil/specs/bundle.json` (keys: `approvalStatus, approvedAt, 
       Same files. RED: `it("approves a pending bundle and stamps approvedAt")`; `it("reject routes status back to draft and stores feedback")` (feedback persisted in bundle `provenance.lastRejectionFeedback`).
       GREEN: uses `nextApprovalStatus` from T1.3 (single source of truth).
 
-- [ ] **T2.5 Handler — run event log.**
+- [x] **T2.5 Handler — run event log.**
       Same files. RED: `it("appends ordered events to a governance run")` (seq monotonic; payloadJson round-trips).
       GREEN: `appendRunEvent` helper exported for later phases.
 

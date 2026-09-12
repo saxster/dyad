@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { apps, specBundles } from "@/db/schema";
+import { apps, governanceRunEvents, specBundles } from "@/db/schema";
 import { DyadError, DyadErrorKind } from "@/errors/dyad_error";
 import { ArtifactStore } from "@/governance/artifacts/artifact_store";
 import {
@@ -19,6 +19,31 @@ async function getArtifactStoreForApp(appId: number): Promise<{
     throw new DyadError(`app ${appId} not found`, DyadErrorKind.NotFound);
   }
   return { store: new ArtifactStore(app.path), appPath: app.path };
+}
+
+export async function appendRunEvent(
+  runId: number,
+  type: string,
+  payload: unknown,
+): Promise<{ id: number; runId: number; seq: number; type: string }> {
+  const latest = await db
+    .select({ seq: governanceRunEvents.seq })
+    .from(governanceRunEvents)
+    .where(eq(governanceRunEvents.runId, runId))
+    .orderBy(desc(governanceRunEvents.seq))
+    .get();
+  const seq = (latest?.seq ?? 0) + 1;
+  const inserted = db
+    .insert(governanceRunEvents)
+    .values({
+      runId,
+      seq,
+      type,
+      payloadJson: JSON.stringify(payload),
+    })
+    .returning({ id: governanceRunEvents.id })
+    .get();
+  return { id: inserted.id, runId, seq, type };
 }
 
 export function registerGovernanceHandlers(): void {

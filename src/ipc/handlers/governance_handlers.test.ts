@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { eq } from "drizzle-orm";
 import { mkdtemp, rm } from "node:fs/promises";
 import { readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -7,12 +8,15 @@ import {
   setupHandlerTestHarness,
   type HandlerTestHarness,
 } from "@/testing/handler_test_harness";
-import { apps } from "@/db/schema";
+import { apps, governanceRunEvents, governanceRuns } from "@/db/schema";
 import {
   parseSpecBundle,
   type SpecBundle,
 } from "@/governance/core/spec_bundle_schemas";
-import { registerGovernanceHandlers } from "./governance_handlers";
+import {
+  appendRunEvent,
+  registerGovernanceHandlers,
+} from "./governance_handlers";
 
 const FIXTURE_PATH = resolve(
   __dirname,
@@ -141,5 +145,58 @@ describe("governance approval handler", () => {
     expect(got?.bundle.provenance.lastRejectionFeedback).toBe(
       "stories lack verification contracts",
     );
+  });
+});
+
+describe("governance run event log", () => {
+  let harness: HandlerTestHarness;
+  let appId: number;
+
+  beforeEach(() => {
+    harness = setupHandlerTestHarness();
+    registerGovernanceHandlers();
+    const app = harness.db
+      .insert(apps)
+      .values({ name: "Events App", path: "/tmp/gov-events" })
+      .returning({ id: apps.id })
+      .get();
+    appId = app.id;
+  });
+
+  afterEach(() => harness.dispose());
+
+  it("appends ordered events to a governance run", async () => {
+    const run = harness.db
+      .insert(governanceRuns)
+      .values({
+        appId,
+        chatId: null,
+        lane: "governed",
+        tier: "standard",
+        status: "running",
+      })
+      .returning({ id: governanceRuns.id })
+      .get();
+
+    const first = await appendRunEvent(run.id, "run_started", {
+      lane: "governed",
+    });
+    const second = await appendRunEvent(run.id, "verdict", {
+      green: 2,
+      red: 1,
+    });
+
+    expect(first.seq).toBe(1);
+    expect(second.seq).toBe(2);
+
+    const events = harness.db
+      .select()
+      .from(governanceRunEvents)
+      .where(eq(governanceRunEvents.runId, run.id))
+      .all();
+    expect(events.map((e) => e.seq)).toEqual([1, 2]);
+    expect(events.map((e) => e.type)).toEqual(["run_started", "verdict"]);
+    expect(JSON.parse(events[0].payloadJson)).toEqual({ lane: "governed" });
+    expect(JSON.parse(events[1].payloadJson)).toEqual({ green: 2, red: 1 });
   });
 });
