@@ -181,7 +181,7 @@ Reference: `ANVIL/.anvil/specs/bundle.json` (keys: `approvalStatus, approvedAt, 
       RED: `it("renders stories with VERIFY-suffixed acceptance criteria")` — given one story, output contains `### US-1: <title>`, the narrative line, `- Given X, when Y, then Z` and the suffix `` VERIFY `npm test` `` on the criterion line (Anvil convention).
       GREEN: `renderRequirementsMarkdown(bundle)`.
 
-- [ ] **T1.5 requirements.md parser (round-trip).**
+- [x] **T1.5 requirements.md parser (round-trip).**
       Same files. RED: `it("parses its own serialized output back into equal stories")` (serializer output → parser → deep-equal stories array; provenance-level fields ignored).
       GREEN: `parseRequirementsMarkdown(md)`. Edge test: CRLF input parses identically (repo rule on line endings).
 

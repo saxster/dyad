@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { renderRequirementsMarkdown } from "./requirements_markdown";
+import {
+  parseRequirementsMarkdown,
+  renderRequirementsMarkdown,
+} from "./requirements_markdown";
 import type { SpecBundle, UserStory } from "./spec_bundle_schemas";
 
 function makeStory(overrides: Partial<UserStory>): UserStory {
@@ -141,5 +144,51 @@ describe("renderRequirementsMarkdown", () => {
       "- Given manual work, when a human does it, then it is done",
     );
     expect(md).not.toContain("VERIFY");
+  });
+});
+describe("parseRequirementsMarkdown", () => {
+  const twoStories = [
+    makeStory({
+      id: "US-1",
+      title: "Export verification scripts",
+      narrative:
+        "As a maintainer I want deterministic scripts so that verification is rerunnable",
+      criteria: [
+        {
+          id: "AC-1",
+          given: "an approved bundle",
+          when: "export runs",
+          then: "scripts are written",
+          verificationContract: "npm test -- foo",
+        },
+      ],
+    }),
+    makeStory({
+      id: "US-2",
+      title: "Keep artifacts reviewable",
+      narrative:
+        "As a reviewer I want readable specs so that I can approve them",
+      criteria: [
+        {
+          id: "AC-1",
+          given: "manual work",
+          when: "a human does it",
+          then: "it is done",
+        },
+      ],
+    }),
+  ];
+
+  it("parses its own serialized output back into equal stories", () => {
+    const md = renderRequirementsMarkdown(makeBundle(twoStories));
+
+    expect(parseRequirementsMarkdown(md)).toEqual(twoStories);
+  });
+
+  it("parses CRLF input identically", () => {
+    const md = renderRequirementsMarkdown(makeBundle(twoStories));
+    const crlf = md.replace(/\n/g, "\r\n");
+
+    expect(parseRequirementsMarkdown(crlf)).toEqual(twoStories);
   });
 });
