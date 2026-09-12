@@ -283,7 +283,7 @@ Reference: `ANVIL/anvil-macOS/Core/Workflow/LeanLane.swift:14-42` (exact signal 
       RED: unit test on `buildAgentToolSet` asserting presence/absence per mode × setting.
       GREEN: wiring only.
 
-- [ ] **T4.5 Approval gate blocks execution.**
+- [x] **T4.5 Approval gate blocks execution.**
       Seam S4 + hybrid. Read `rules/hybrid-testing.md`. Files: `src/ipc/handlers/chat_stream_handlers.governance.integration.test.ts`.
       RED: `it("refuses an agent turn on a governed chat whose latest bundle is not approved")` — fake LLM harness, chat with pending bundle → turn errors with DyadError kind `Precondition` mentioning approval; same chat after `approveSpecBundle` → turn proceeds.
       GREEN: pre-dispatch check in the chat stream handler (additive, behind `enableGovernance` + lane === governed).

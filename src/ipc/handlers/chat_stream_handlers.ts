@@ -18,12 +18,15 @@ import {
 } from "ai";
 
 import { db } from "../../db";
-import { governanceRuns } from "../../db/schema";
-import { routeTurn } from "../../governance/core/route_turn";
+import { governanceRuns, specBundles } from "../../db/schema";
+import {
+  routeTurn,
+  type RouteTurnDecision,
+} from "../../governance/core/route_turn";
 import { appendRunEvent } from "./governance_handlers";
 import { apps, chats, messages } from "../../db/schema";
 import { scheduleChatSearchIndexing } from "../../pro/main/ipc/handlers/local_agent/chat_search_indexer";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import {
   hasSupabaseCredentialsForOrganization,
   type SmartContextMode,
@@ -1154,8 +1157,9 @@ export function registerChatStreamHandlers() {
       // Governance routing (private fork): screen every turn and record the
       // decision as a governance run. Best-effort: a recording failure must
       // never block the turn itself.
+      let governanceDecision: RouteTurnDecision | null = null;
       try {
-        const governanceDecision = routeTurn({
+        governanceDecision = routeTurn({
           prompt: req.prompt,
           mode: selectedChatMode,
           enableGovernance: storedSettings.enableGovernance ?? true,
@@ -1178,6 +1182,23 @@ export function registerChatStreamHandlers() {
         });
       } catch (error) {
         log.warn("failed to record governance routing", error);
+      }
+
+      // Approval gate (private fork): a governed turn on an app whose latest
+      // spec bundle is not approved is refused before any model work.
+      if (governanceDecision?.lane === "governed") {
+        const latestBundleRow = await db
+          .select()
+          .from(specBundles)
+          .where(eq(specBundles.appId, chat.appId))
+          .orderBy(desc(specBundles.id))
+          .get();
+        if (latestBundleRow && latestBundleRow.approvalStatus !== "approved") {
+          throw new DyadError(
+            "This turn routed to the governed lane but the app's latest spec bundle still needs approval. Review and approve (or reject) the spec before running governed turns.",
+            DyadErrorKind.Precondition,
+          );
+        }
       }
 
       // Reserve quota before redo or attachment persistence. The reservation
