@@ -7,6 +7,7 @@ import {
   constructLocalAgentPrompt,
 } from "./local_agent_prompt";
 import { constructPlanModePrompt } from "./plan_mode_prompt";
+import { constructSpecModePrompt } from "./spec_mode_prompt";
 import type { AppFrameworkType } from "@/lib/framework_constants";
 import type { AppBlueprintData } from "@/ipc/types/app_blueprint";
 
@@ -765,6 +766,7 @@ export const constructSystemPrompt = ({
   restartAppToolAvailable,
   reinstallAndRestartAppToolAvailable,
   runBuildToolAvailable,
+  enableGovernance,
 }: {
   aiRules: string | undefined;
   chatMode?: "build" | "ask" | "local-agent" | "plan";
@@ -821,8 +823,13 @@ export const constructSystemPrompt = ({
   restartAppToolAvailable?: boolean;
   reinstallAndRestartAppToolAvailable?: boolean;
   runBuildToolAvailable?: boolean;
+  /** Governance fork: when on, plan mode uses the spec-governed prompt. */
+  enableGovernance?: boolean;
 }) => {
   if (chatMode === "plan") {
+    if (enableGovernance) {
+      return constructSpecModePrompt(aiRules, themePrompt);
+    }
     return constructPlanModePrompt(aiRules, themePrompt);
   }
 

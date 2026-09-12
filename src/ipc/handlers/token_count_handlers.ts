@@ -113,6 +113,7 @@ export function registerTokenCountHandlers() {
       const appBlueprintQuestionnaireCompleted =
         hasCompletedAppBlueprintQuestionnaire(chat.messages);
       let systemPrompt = constructSystemPrompt({
+        enableGovernance: settings.enableGovernance ?? true,
         aiRules: await readAiRules(getDyadAppPath(chat.app.path)),
         chatMode: selectedChatMode === "ask" ? "local-agent" : selectedChatMode,
         enableTurboEditsV2: isTurboEditsV2Enabled(settings),

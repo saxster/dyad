@@ -263,7 +263,7 @@ Reference: `ANVIL/anvil-macOS/Core/Workflow/LeanLane.swift:14-42` (exact signal 
 
 ### Phase 4 — Spec mode (Plan mode upgrade) (8 tasks)
 
-- [ ] **T4.1 Spec-mode prompt.**
+- [x] **T4.1 Spec-mode prompt.**
       Seam S9. Files: `src/prompts/spec_mode_prompt.ts` + `src/prompts/spec_mode_prompt.test.ts`.
       RED: snapshot test — prompt instructs: gather via `planning_questionnaire`; then produce EARS stories (Given/When/Then criteria), MoSCoW priorities, `verificationContract` per criterion when objectively checkable (shell command exiting 0), notDoingList, risks; present via `write_spec`; only after user approval call `exit_plan`.
       GREEN: export `SPEC_MODE_SYSTEM_PROMPT`, wire where `PLAN_MODE_SYSTEM_PROMPT` is selected when `enableGovernance` (keep old prompt file untouched for non-governed path).

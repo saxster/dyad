@@ -2191,6 +2191,7 @@ ${componentSnippet}
         let systemPrompt = constructSystemPrompt({
           aiRules,
           chatMode: selectedChatMode,
+          enableGovernance: settings.enableGovernance ?? true,
           enableTurboEditsV2: isTurboEditsV2Enabled(settings),
           themePrompt,
           basicAgentMode: isBasicAgentMode(settings),
@@ -2685,6 +2686,7 @@ This conversation includes one or more image attachments. When the user uploads 
           let planModeSystemPrompt = constructSystemPrompt({
             aiRules,
             chatMode: "plan",
+            enableGovernance: settings.enableGovernance ?? true,
             enableTurboEditsV2: false,
             themePrompt,
             freeModelMode,
