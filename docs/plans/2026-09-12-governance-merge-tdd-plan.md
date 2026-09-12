@@ -176,7 +176,7 @@ Reference: `ANVIL/.anvil/specs/bundle.json` (keys: `approvalStatus, approvedAt, 
 - [x] **T1.3 Approval status transitions.**
       Same files. RED: table-driven `it.each` — `draft → pending_approval → approved` allowed; `approved → draft` requires `force` flag; `approved` requires `approvedAt`. GREEN: `nextApprovalStatus(current, event)` pure reducer returning `{ status } | { error }`.
 
-- [ ] **T1.4 requirements.md serializer.**
+- [x] **T1.4 requirements.md serializer.**
       Seam S1. Files: test + impl `src/governance/core/requirements_markdown.ts`.
       RED: `it("renders stories with VERIFY-suffixed acceptance criteria")` — given one story, output contains `### US-1: <title>`, the narrative line, `- Given X, when Y, then Z` and the suffix `` VERIFY `npm test` `` on the criterion line (Anvil convention).
       GREEN: `renderRequirementsMarkdown(bundle)`.
