@@ -67,6 +67,7 @@ const DYAD_CUSTOM_TAG_NAMES = [
   "dyad-copy",
   "dyad-image-generation",
   "dyad-write-plan",
+  "dyad-spec",
   "dyad-exit-plan",
   "dyad-questionnaire",
   "dyad-step-limit",

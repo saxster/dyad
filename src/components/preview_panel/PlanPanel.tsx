@@ -21,6 +21,7 @@ import { usePlan } from "@/hooks/usePlan";
 import { useChatMode } from "@/hooks/useChatMode";
 import { usePlanDocument } from "@/hooks/usePlanDocument";
 import { SpecReviewPanel } from "@/components/governance/SpecReviewPanel";
+import { useGovernanceSpecBundle } from "@/hooks/use_governance";
 import {
   usePlanHandoff,
   usePlanHandoffState,
@@ -48,6 +49,8 @@ export const PlanPanel: React.FC = () => {
     handoff.phase !== "cancelled";
   const previewMode = useAtomValue(previewModeAtom);
   const setPreviewMode = useSetAtom(previewModeAtom);
+  const { bundle: governedBundle, isLoading: governedBundleLoading } =
+    useGovernanceSpecBundle(appId);
   const { streamMessage, isStreaming } = useStreamChat();
   const { savedPlan } = usePlan();
   const { selectedMode } = useChatMode(chatId);
@@ -73,12 +76,24 @@ export const PlanPanel: React.FC = () => {
     savedPlan.title === currentTitle &&
     (savedPlan.summary ?? null) === (currentSummary ?? null);
 
-  // If there's no plan content, switch back to preview mode
+  // If there's no plan content, switch back to preview mode. A governed
+  // spec bundle keeps the plan panel up so its review panel stays visible.
   useEffect(() => {
-    if (!currentPlan && previewMode === "plan") {
+    if (
+      !currentPlan &&
+      !governedBundle &&
+      !governedBundleLoading &&
+      previewMode === "plan"
+    ) {
       setPreviewMode("preview");
     }
-  }, [currentPlan, previewMode, setPreviewMode]);
+  }, [
+    currentPlan,
+    governedBundle,
+    governedBundleLoading,
+    previewMode,
+    setPreviewMode,
+  ]);
 
   const setAnnotations = useSetAtom(planAnnotationsAtom);
   const [acceptInNewChatByChatId, setPlanAcceptInNewChat] = useAtom(
@@ -230,8 +245,9 @@ export const PlanPanel: React.FC = () => {
     });
   };
 
-  // Don't render anything if there's no plan - effect will switch to preview mode
-  if (!currentPlan) {
+  // Don't render anything if there's no plan - effect will switch to preview
+  // mode. A governed spec bundle keeps the panel up for its review UI.
+  if (!currentPlan && !governedBundle) {
     return null;
   }
 
@@ -271,7 +287,7 @@ export const PlanPanel: React.FC = () => {
                 data-testid="plan-content"
                 className="prose dark:prose-invert prose-sm max-w-none"
               >
-                <VanillaMarkdownParser content={currentPlan} />
+                <VanillaMarkdownParser content={currentPlan ?? ""} />
               </div>
             </div>
           </div>

@@ -8,6 +8,7 @@ import {
   type SpecBundle,
 } from "@/governance/core/spec_bundle_schemas";
 import { governanceContracts } from "../contracts/governance_contracts";
+import { getDyadAppPath } from "@/paths/paths";
 import { createTypedHandler } from "./base";
 
 async function getArtifactStoreForApp(appId: number): Promise<{
@@ -18,7 +19,8 @@ async function getArtifactStoreForApp(appId: number): Promise<{
   if (!app) {
     throw new DyadError(`app ${appId} not found`, DyadErrorKind.NotFound);
   }
-  return { store: new ArtifactStore(app.path), appPath: app.path };
+  const resolvedPath = getDyadAppPath(app.path);
+  return { store: new ArtifactStore(resolvedPath), appPath: resolvedPath };
 }
 
 export async function appendRunEvent(

@@ -1111,6 +1111,7 @@ export async function handleLocalAgentStream(
       freeModelMode: effectiveFreeModelMode,
       enableAppBlueprint:
         settings.enableAppBlueprint && chat.app.needsAppBlueprint,
+      enableGovernance: settings.enableGovernance ?? true,
     };
     // Same inclusion predicate the tool-set builder uses for the write_file
     // tool, so the sandbox write host can never stay exposed in a turn where

@@ -50,6 +50,7 @@ import { securityContracts } from "../types/security";
 import { miscContracts, miscEvents } from "../types/misc";
 import { freeAgentQuotaContracts } from "../types/free_agent_quota";
 import { freeModelQuotaContracts } from "../types/free_model_quota";
+import { governanceContracts } from "../contracts/governance_contracts";
 import { planEvents, planContracts } from "../types/plan";
 import { audioContracts } from "../types/audio";
 import { mediaContracts } from "../types/media";
@@ -107,6 +108,7 @@ export const VALID_INVOKE_CHANNELS = [
   ...getInvokeChannels(appContracts),
   ...getInvokeChannels(chatContracts),
   ...getInvokeChannels(agentContracts),
+  ...getInvokeChannels(governanceContracts),
 
   // Stream invoke channels
   CHAT_STREAM_CHANNELS.invoke,

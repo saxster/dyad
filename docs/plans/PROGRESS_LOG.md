@@ -53,3 +53,31 @@
 - Environment: after the session sandbox began denying writes under
   `/var/folders/.../T`, tests must run with `export TMPDIR=/tmp/dyad-tmp`
   (os.tmpdir() is honored by vitest and the node --test pre-chain).
+
+## 2026-09-12 — Phase 4 gate
+
+- T4.1–T4.8 complete. Spec-mode prompt (S9 snapshot), write_spec tool,
+  TOOL_DEFINITIONS gating, approval gate (integration), spec diff engine,
+  SpecReviewPanel, reject→regenerate loop (integration).
+- Gate result:
+  - `npm run build` ✓ (initially failed on a corrupted
+    `~/Library/Caches/electron/…/electron-v40.0.0-darwin-arm64.zip` written by
+    the sandboxed install; removing the cached zip fixed packaging).
+  - E2E smoke ✓ `e2e-tests/governance_spec_flow.spec.ts` (19.7s): plan-mode
+    governed chat writes the spec via write_spec, the review panel surfaces
+    with the pending spec, Approve flips the status to approved, and a
+    subsequent governed-lane turn runs.
+- Gate-driven fixes (found only by the packaged-E2E run):
+  - `local_agent_handler.ts` buildOptions now passes `enableGovernance` (the
+    tool-set option was previously wired only at the estimator call site, so
+    write_spec was unavailable in real turns).
+  - `governance_handlers.ts` resolves app paths via `getDyadAppPath` (raw
+    relative `apps.path` broke loadBundle in the packaged app).
+  - `governanceContracts` imported into `src/ipc/preload/channels.ts`
+    (channels were missing from the preload allowlist; renderer invokes
+    failed). `governance_contracts.ts` uses a relative import for
+    SpecBundleSchema per the preload Vite alias limitation.
+  - `dyad-spec` registered in `streamingMessageParser.ts` and
+    `DyadMarkdownParser.tsx`; new `DyadWriteSpec` card surfaces the plan
+    panel once the bundle is queryable; `PlanPanel` keeps the plan tab open
+    (and renders its review UI) while a governed bundle exists.

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { defineContract, createClient } from "./core";
-import { SpecBundleSchema } from "@/governance/core/spec_bundle_schemas";
+import { SpecBundleSchema } from "../../governance/core/spec_bundle_schemas";
 
 export const governanceContracts = {
   saveSpecBundle: defineContract({
