@@ -20,6 +20,7 @@ import { useStreamChat } from "@/hooks/useStreamChat";
 import { usePlan } from "@/hooks/usePlan";
 import { useChatMode } from "@/hooks/useChatMode";
 import { usePlanDocument } from "@/hooks/usePlanDocument";
+import { SpecReviewPanel } from "@/components/governance/SpecReviewPanel";
 import {
   usePlanHandoff,
   usePlanHandoffState,
@@ -241,6 +242,7 @@ export const PlanPanel: React.FC = () => {
           className="relative h-full overflow-y-auto p-4"
           ref={scrollContainerRef}
         >
+          {appId != null && <SpecReviewPanel appId={appId} />}
           {chatId && (
             <CommentsFloatingButton
               chatId={chatId}

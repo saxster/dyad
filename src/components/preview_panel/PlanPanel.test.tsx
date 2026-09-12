@@ -1,5 +1,19 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+// The panel mounts governance hooks that read through React Query; provide
+// the same root-scoped provider the real renderer mounts.
+function renderPlanPanel() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  render(
+    <QueryClientProvider client={queryClient}>
+      <PlanPanel />
+    </QueryClientProvider>,
+  );
+}
 
 const mocks = vi.hoisted(() => ({
   acceptPlan: vi.fn(),
@@ -104,7 +118,7 @@ describe("PlanPanel", () => {
         settle = onSettled;
       },
     );
-    render(<PlanPanel />);
+    renderPlanPanel();
     const button = screen.getByTestId(
       "accept-plan-new-chat",
     ) as HTMLButtonElement;
@@ -124,7 +138,7 @@ describe("PlanPanel", () => {
       .spyOn(console, "error")
       .mockImplementation(() => undefined);
 
-    render(<PlanPanel />);
+    renderPlanPanel();
     const button = screen.getByTestId(
       "accept-plan-new-chat",
     ) as HTMLButtonElement;

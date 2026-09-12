@@ -294,7 +294,7 @@ Reference: `ANVIL/anvil-macOS/Core/Workflow/LeanLane.swift:14-42` (exact signal 
       RED: `it("classifies added/removed/modified stories between bundle versions")` (match on `storyId`; modified = any criterion/narrative change); `it("renders a markdown diff")` containing `+ US-3` / `- US-2` / `~ US-1`.
       GREEN: `diffBundles(a, b)`, `renderSpecDiff(diff)`.
 
-- [ ] **T4.7 Approval UI panel.**
+- [x] **T4.7 Approval UI panel.**
       Seam S10. Files: `src/components/governance/SpecReviewPanel.tsx` + colocated test. Base UI only (`rules/base-ui-components.md`). Shows stories/criteria/VERIFY commands, diff vs previous version, Approve / Reject-with-feedback buttons calling T2.4 IPC.
       RED: `it("renders criteria with their verification commands and wires approve")` (mocked hook).
       GREEN: component + mount into the chat right panel where plan review renders today (find the plan-mode plan display component and add a governed variant).

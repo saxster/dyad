@@ -481,6 +481,8 @@ export const queryKeys = {
     all: ["governance"] as const,
     specBundle: ({ appId }: { appId: number | null }) =>
       ["governance", "specBundle", appId] as const,
+    specHistory: ({ appId }: { appId: number | null }) =>
+      ["governance", "specHistory", appId] as const,
   },
 } as const;
 
