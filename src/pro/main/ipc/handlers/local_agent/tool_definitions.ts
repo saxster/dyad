@@ -57,6 +57,7 @@ import {
   waitAgentsTool,
 } from "./tools/subagent_tools";
 import { planningQuestionnaireTool } from "./tools/planning_questionnaire";
+import { writeSpecTool } from "./tools/write_spec";
 import { writePlanTool } from "./tools/write_plan";
 import { exitPlanTool } from "./tools/exit_plan";
 import { readGuideTool } from "./tools/read_guide";
@@ -192,6 +193,7 @@ export const TOOL_DEFINITIONS: readonly ToolDefinition[] = [
   planningQuestionnaireTool,
   writePlanTool,
   exitPlanTool,
+  writeSpecTool,
   // App blueprint tools
   writeAppBlueprintTool,
 ];
@@ -434,6 +436,11 @@ export interface BuildAgentToolSetOptions {
    */
   planModeOnly?: boolean;
   /**
+   * Governance fork: whether the governed pipeline (write_spec in plan
+   * mode) is enabled for this turn.
+   */
+  enableGovernance?: boolean;
+  /**
    * If true, exclude Pro-only tools.
    * Used for basic agent mode where some tools may not be available.
    */
@@ -546,6 +553,7 @@ export async function estimateAgentToolTokens({
     basicAgentMode,
     freeModelMode,
     enableAppBlueprint,
+    enableGovernance: readSettings().enableGovernance ?? true,
   };
   const mcpInSandboxEnabled =
     toolProfile !== "build" &&
@@ -631,7 +639,7 @@ export function estimateBuildModeToolTokens(
  * Tools that should ONLY be available in plan mode (excluded from normal agent mode).
  * Note: planning_questionnaire is intentionally omitted so it's available in pro agent mode too.
  */
-const PLAN_MODE_ONLY_TOOLS = new Set(["write_plan", "exit_plan"]);
+const PLAN_MODE_ONLY_TOOLS = new Set(["write_plan", "exit_plan", "write_spec"]);
 
 /**
  * Planning-specific tools that are allowed in plan mode despite modifying state.
@@ -641,6 +649,7 @@ const PLAN_MODE_ONLY_TOOLS = new Set(["write_plan", "exit_plan"]);
 const PLANNING_SPECIFIC_TOOLS = new Set([
   ...PLAN_MODE_ONLY_TOOLS,
   "planning_questionnaire",
+  "write_spec",
 ]);
 
 /**
@@ -747,6 +756,10 @@ export function shouldIncludeTool(
     options.enableAppBlueprint === false &&
     APP_BLUEPRINT_TOOLS.has(tool.name)
   ) {
+    return false;
+  }
+  // Governance fork: write_spec exists only in governed plan mode.
+  if (tool.name === "write_spec" && options.enableGovernance !== true) {
     return false;
   }
   // In read-only mode, skip tools that modify state.

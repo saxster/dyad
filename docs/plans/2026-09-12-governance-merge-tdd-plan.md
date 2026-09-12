@@ -278,7 +278,7 @@ Reference: `ANVIL/anvil-macOS/Core/Workflow/LeanLane.swift:14-42` (exact signal 
       Same files. RED: `it("returns a validation error the model can fix when stories lack criteria")` — DyadError kind Validation, message lists the failing paths.
       GREEN: zod error formatting.
 
-- [ ] **T4.4 Register the tool.**
+- [x] **T4.4 Register the tool.**
       Files: add `writeSpecTool` to `TOOL_DEFINITIONS` (`tool_definitions.ts:140`) and include-condition so it only appears in plan mode when governance on (mirror how `planningQuestionnaireTool` is gated — see `shouldIncludeTool`).
       RED: unit test on `buildAgentToolSet` asserting presence/absence per mode × setting.
       GREEN: wiring only.
