@@ -200,7 +200,7 @@ Reference: `ANVIL/.anvil/specs/bundle.json` (keys: `approvalStatus, approvedAt, 
 
 ### Phase 2 — Governance DB + IPC spine (6 tasks)
 
-- [ ] **T2.1 Tables.**
+- [x] **T2.1 Tables.**
       Seam S8. Read `rules/database-drizzle.md` first. Files: `src/db/schema.ts` (additive), test `src/db/governance_schema.test.ts`.
       Tables: `spec_bundles(id, appId, chatId?, artifactVersion, approvalStatus, approvedAt?, createdAt, updatedAt)`, `spec_stories(id, bundleId, storyId, title, priority, narrative, json)`, `acceptance_criteria(id, storyRowId, criterionId, given, when, then, verificationContract?)`, `governance_runs(id, appId, chatId, bundleId, lane, tier, status, startedAt, endedAt?)`, `governance_run_events(id, runId, seq, type, payloadJson, at)`, `spec_verifications(id, runId, versionId?, criterionKey, status, exitCode?, outputTail, at)`.
       RED: insert + re-select one row per table through drizzle against a tmp sqlite db (copy the setup from `src/db.test.ts`).

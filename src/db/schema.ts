@@ -843,3 +843,96 @@ export const customThemes = sqliteTable("custom_themes", {
     .notNull()
     .default(sql`(unixepoch())`),
 });
+
+// --- Governance tables (private governance fork) ---
+
+export const specBundles = sqliteTable("spec_bundles", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  appId: integer("app_id")
+    .notNull()
+    .references(() => apps.id, { onDelete: "cascade" }),
+  chatId: integer("chat_id").references(() => chats.id, {
+    onDelete: "set null",
+  }),
+  artifactVersion: integer("artifact_version").notNull(),
+  approvalStatus: text("approval_status").notNull(),
+  approvedAt: integer("approved_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+export const specStories = sqliteTable("spec_stories", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  bundleId: integer("bundle_id")
+    .notNull()
+    .references(() => specBundles.id, { onDelete: "cascade" }),
+  storyId: text("story_id").notNull(),
+  title: text("title").notNull(),
+  priority: text("priority"),
+  narrative: text("narrative").notNull(),
+  json: text("json").notNull(),
+});
+
+export const acceptanceCriteria = sqliteTable("acceptance_criteria", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  storyRowId: integer("story_row_id")
+    .notNull()
+    .references(() => specStories.id, { onDelete: "cascade" }),
+  criterionId: text("criterion_id").notNull(),
+  given: text("given").notNull(),
+  when: text("when").notNull(),
+  then: text("then").notNull(),
+  verificationContract: text("verification_contract"),
+});
+
+export const governanceRuns = sqliteTable("governance_runs", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  appId: integer("app_id")
+    .notNull()
+    .references(() => apps.id, { onDelete: "cascade" }),
+  chatId: integer("chat_id").references(() => chats.id, {
+    onDelete: "set null",
+  }),
+  bundleId: integer("bundle_id").references(() => specBundles.id, {
+    onDelete: "set null",
+  }),
+  lane: text("lane").notNull(),
+  tier: text("tier").notNull(),
+  status: text("status").notNull(),
+  startedAt: integer("started_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  endedAt: integer("ended_at", { mode: "timestamp" }),
+});
+
+export const governanceRunEvents = sqliteTable("governance_run_events", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  runId: integer("run_id")
+    .notNull()
+    .references(() => governanceRuns.id, { onDelete: "cascade" }),
+  seq: integer("seq").notNull(),
+  type: text("type").notNull(),
+  payloadJson: text("payload_json").notNull(),
+  at: integer("at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+export const specVerifications = sqliteTable("spec_verifications", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  runId: integer("run_id")
+    .notNull()
+    .references(() => governanceRuns.id, { onDelete: "cascade" }),
+  versionId: integer("version_id"),
+  criterionKey: text("criterion_key").notNull(),
+  status: text("status").notNull(),
+  exitCode: integer("exit_code"),
+  outputTail: text("output_tail"),
+  at: integer("at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
