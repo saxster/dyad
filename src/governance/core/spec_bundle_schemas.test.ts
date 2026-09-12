@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { EarsCriterionSchema, UserStorySchema } from "./spec_bundle_schemas";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import {
+  EarsCriterionSchema,
+  parseSpecBundle,
+  serializeSpecBundle,
+  UserStorySchema,
+} from "./spec_bundle_schemas";
 
 describe("spec bundle story schemas", () => {
   it("accepts an EARS story with a verification contract", () => {
@@ -80,5 +87,49 @@ describe("spec bundle story schemas", () => {
     });
 
     expect(result.success).toBe(false);
+  });
+});
+
+const FIXTURE_PATH = resolve(
+  __dirname,
+  "../__fixtures__/spec_bundle.fixture.json",
+);
+
+// The 17 keys of a .dyad spec bundle (plan §4 Phase 1 reference).
+const BUNDLE_KEYS = [
+  "approvalStatus",
+  "approvedAt",
+  "createdAt",
+  "design",
+  "id",
+  "manifest",
+  "nonFunctionalRequirements",
+  "notDoingList",
+  "provenance",
+  "rawIntent",
+  "releaseReadiness",
+  "riskRegister",
+  "stories",
+  "strategy",
+  "threatModel",
+  "verificationPlan",
+  "version",
+].sort();
+
+describe("SpecBundleSchema round-trip", () => {
+  it("round-trips a full bundle through parse→serialize→parse", () => {
+    const raw = JSON.parse(readFileSync(FIXTURE_PATH, "utf8"));
+
+    const first = parseSpecBundle(raw);
+    const second = parseSpecBundle(serializeSpecBundle(first));
+
+    expect(second).toEqual(first);
+  });
+
+  it("preserves all 17 top-level bundle keys", () => {
+    const raw = JSON.parse(readFileSync(FIXTURE_PATH, "utf8"));
+    const parsed = parseSpecBundle(raw);
+
+    expect(Object.keys(parsed).sort()).toEqual(BUNDLE_KEYS);
   });
 });

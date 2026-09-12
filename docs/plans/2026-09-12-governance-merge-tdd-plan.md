@@ -169,7 +169,7 @@ Reference: `ANVIL/.anvil/specs/bundle.json` (keys: `approvalStatus, approvedAt, 
       GREEN: zod schemas `EarsCriterionSchema`, `UserStorySchema`. Export types.
       Verify: `npm test -- src/governance/core/spec_bundle_schemas.test.ts`.
 
-- [ ] **T1.2 Full bundle schema round-trip.**
+- [x] **T1.2 Full bundle schema round-trip.**
       Same files. RED: `it("round-trips a full bundle through parse→serialize→parse")` using a fixture derived from the real Anvil bundle (copy to `src/governance/__fixtures__/spec_bundle.fixture.json`, sanitize project-specific strings). Assert the second parse deep-equals the first.
       GREEN: `SpecBundleSchema` with all 17 keys; `parseSpecBundle(json)`, `serializeSpecBundle(bundle)`.
 

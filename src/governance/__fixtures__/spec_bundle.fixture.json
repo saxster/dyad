@@ -1,0 +1,384 @@
+{
+  "approvalStatus": "approved",
+  "approvedAt": "2026-07-04T03:45:00Z",
+  "createdAt": "2026-07-04T03:45:00Z",
+  "design": {
+    "architecture": [
+      {
+        "affectedFiles": [
+          "anvil-macOS/Core/Verification/VerificationScriptExporter.swift",
+          "anvil-macOS/Core/Workspace/WorkspaceVerificationScriptExportCLI.swift",
+          "scripts/anvilctl"
+        ],
+        "anvilDomain": "[ORCH]",
+        "dependencies": [],
+        "id": "33333333-3333-5333-8333-333333333331",
+        "name": "VerificationScriptExportSurface",
+        "responsibility": "Export approved manifest verification contracts into deterministic root-runnable scripts and a reviewable index."
+      }
+    ],
+    "dataModels": "VerificationScriptExportSummary stores supported task types, unsupported task types, exportedScripts, and skippedTasks. Each exported script descriptor contains the manifest task, safe argv, verification contract, and generated script path.",
+    "generatedAt": "2026-07-04T03:45:00Z",
+    "performanceConstraints": [
+      "The export command performs local file reads and writes only.",
+      "Generated scripts run focused validation commands rather than the full health gate."
+    ],
+    "securityConsiderations": [
+      "Only SafeCommandParser-approved commands are exported.",
+      "Manual prose and unsupported commands remain skipped with reasons."
+    ],
+    "sequenceDiagram": "sequenceDiagram\n  participant Operator\n  participant Anvilctl\n  participant NativeCLI\n  participant Exporter\n  Operator->>Anvilctl: verification-scripts-export --worktree\n  Anvilctl->>NativeCLI: --workspace-verification-scripts-export\n  NativeCLI->>Exporter: export(bundle, worktreeURL)\n  Exporter-->>NativeCLI: VerificationScriptExportSummary\n  NativeCLI-->>Anvilctl: JSON summary\n  Anvilctl-->>Operator: JSON or human summary",
+    "specId": "11111111-1111-5111-8111-111111111111"
+  },
+  "id": "11111111-1111-5111-8111-111111111111",
+  "manifest": {
+    "generatedAt": "2026-07-04T03:45:00Z",
+    "runtimeTasks": [],
+    "specId": "11111111-1111-5111-8111-111111111111",
+    "tasks": [
+      {
+        "dependsOnTitles": [],
+        "description": "Run exporter unit tests from the repository root.",
+        "estimatedPhase": "Verification",
+        "id": "44444444-4444-5444-8444-444444444441",
+        "linkedComponentIds": ["33333333-3333-5333-8333-333333333331"],
+        "linkedCriterionIds": [
+          "22222222-2222-5222-8222-222222222221",
+          "22222222-2222-5222-8222-222222222222"
+        ],
+        "linkedStoryIds": ["22222222-2222-5222-8222-222222222220"],
+        "requiresTestFirst": false,
+        "status": "completed",
+        "title": "Verify exporter",
+        "verificationContract": "swift test --package-path anvil-macOS --filter VerificationScriptExporterTests --disable-swift-testing"
+      },
+      {
+        "dependsOnTitles": ["Verify exporter"],
+        "description": "Run runner unit tests from the repository root.",
+        "estimatedPhase": "Verification",
+        "id": "44444444-4444-5444-8444-444444444442",
+        "linkedComponentIds": ["33333333-3333-5333-8333-333333333331"],
+        "linkedCriterionIds": ["22222222-2222-5222-8222-222222222221"],
+        "linkedStoryIds": ["22222222-2222-5222-8222-222222222220"],
+        "requiresTestFirst": false,
+        "status": "completed",
+        "title": "Verify runner",
+        "verificationContract": "swift test --package-path anvil-macOS --filter VerificationScriptRunnerTests --disable-swift-testing"
+      },
+      {
+        "dependsOnTitles": ["Verify exporter"],
+        "description": "Run the CLI contract that proves anvilctl writes scripts, index, README, and skipped reasons.",
+        "estimatedPhase": "Verification",
+        "id": "44444444-4444-5444-8444-444444444443",
+        "linkedComponentIds": ["33333333-3333-5333-8333-333333333331"],
+        "linkedCriterionIds": [
+          "22222222-2222-5222-8222-222222222221",
+          "22222222-2222-5222-8222-222222222222"
+        ],
+        "linkedStoryIds": ["22222222-2222-5222-8222-222222222220"],
+        "requiresTestFirst": false,
+        "status": "completed",
+        "title": "Verify CLI export",
+        "verificationContract": "swift test --package-path anvil-macOS --filter AnvilCLIContractTests/testVerificationScriptsExportCommandWritesIndexScriptsAndSkippedReasons --disable-swift-testing"
+      },
+      {
+        "dependsOnTitles": ["Verify CLI export"],
+        "description": "Run the repository artifact guard that decodes the spec bundle and exported verification index.",
+        "estimatedPhase": "Verification",
+        "id": "44444444-4444-5444-8444-444444444444",
+        "linkedComponentIds": ["33333333-3333-5333-8333-333333333331"],
+        "linkedCriterionIds": ["22222222-2222-5222-8222-222222222223"],
+        "linkedStoryIds": ["22222222-2222-5222-8222-222222222224"],
+        "requiresTestFirst": false,
+        "status": "completed",
+        "title": "Verify repo artifacts",
+        "verificationContract": "swift test --package-path anvil-macOS --filter ProjectArtifactCatalogTests/testRepositoryVerificationExportArtifactsAreLoadable --disable-swift-testing"
+      },
+      {
+        "dependsOnTitles": ["Verify repo artifacts"],
+        "description": "Inspect exportedScripts and skippedTasks in the generated index.",
+        "estimatedPhase": "Verification",
+        "id": "44444444-4444-5444-8444-444444444445",
+        "linkedComponentIds": ["33333333-3333-5333-8333-333333333331"],
+        "linkedCriterionIds": ["22222222-2222-5222-8222-222222222222"],
+        "linkedStoryIds": ["22222222-2222-5222-8222-222222222220"],
+        "requiresTestFirst": false,
+        "status": "completed",
+        "title": "Manual export boundary review",
+        "verificationContract": "Review .anvil/bin/verification-tasks.json and confirm exportedScripts and skippedTasks."
+      }
+    ]
+  },
+  "nonFunctionalRequirements": {
+    "generatedAt": "2026-07-04T03:45:00Z",
+    "requirements": [
+      {
+        "category": "Security",
+        "id": "55555555-5555-5555-8555-555555555551",
+        "key": "safe-command-export-only",
+        "rationale": "Generated verification scripts are runnable local code.",
+        "target": "Only SafeCommandParser-approved single-line commands are written as executable scripts.",
+        "title": "Safe command export only",
+        "verification": "swift test --filter VerificationScriptExporterTests --disable-swift-testing"
+      },
+      {
+        "category": "Portability",
+        "id": "55555555-5555-5555-8555-555555555552",
+        "key": "root-runnable-scripts",
+        "rationale": "The exporter scripts cd to the workspace root before invoking their command.",
+        "target": "Exported scripts run from the repository root.",
+        "title": "Root-runnable scripts",
+        "verification": "Run each exported .anvil/bin/verify-*.sh script."
+      }
+    ],
+    "summary": "The export path must be deterministic, safe to inspect, and bounded to local verification commands."
+  },
+  "notDoingList": [
+    "No live LLM or credential checks.",
+    "No GUI-only verification path.",
+    "No full make anvil-health gate unless focused validation exposes a broader regression."
+  ],
+  "provenance": {
+    "design": {
+      "headlessPolicy": {}
+    },
+    "manifest": {
+      "headlessPolicy": {}
+    },
+    "stories": {
+      "headlessPolicy": {}
+    }
+  },
+  "rawIntent": "Export deterministic verification scripts for this anvil_opencode workspace from the approved .anvil/specs bundle.",
+  "releaseReadiness": {
+    "checklist": [
+      {
+        "evidence": "swift test --filter VerificationScriptExporterTests --disable-swift-testing",
+        "id": "99999999-9999-5999-8999-999999999991",
+        "title": "Exporter tests pass"
+      },
+      {
+        "evidence": "swift test --filter VerificationScriptRunnerTests --disable-swift-testing",
+        "id": "99999999-9999-5999-8999-999999999992",
+        "title": "Runner tests pass"
+      },
+      {
+        "evidence": "swift test --filter AnvilCLIContractTests --disable-swift-testing",
+        "id": "99999999-9999-5999-8999-999999999993",
+        "title": "CLI tests pass"
+      },
+      {
+        "evidence": ".anvil/bin/verify-*.sh",
+        "id": "99999999-9999-5999-8999-999999999994",
+        "title": "Generated scripts pass"
+      }
+    ],
+    "generatedAt": "2026-07-04T03:45:00Z",
+    "observabilityChecks": [
+      "Human anvilctl output lists exported scripts and skipped reasons.",
+      ".anvil/bin/README.md mirrors the export boundary.",
+      "git check-ignore reports only allowlist negation entries for the index and bundle."
+    ],
+    "rollbackSteps": [
+      "Remove the CLI wrapper and generated .anvil/bin artifacts.",
+      "Restore the prior .gitignore .anvil allowlist."
+    ],
+    "rolloutSteps": [
+      "Run focused Swift tests.",
+      "Run anvilctl verification-scripts-export against the workspace.",
+      "Run each exported script."
+    ],
+    "summary": "Ship this slice after focused exporter, runner, CLI, repository artifact, real export, ignore-boundary, and generated-script checks pass."
+  },
+  "riskRegister": {
+    "generatedAt": "2026-07-04T03:45:00Z",
+    "risks": [
+      {
+        "description": "A prompt-style or compound command could be written as a runnable script.",
+        "id": "66666666-6666-5666-8666-666666666661",
+        "impact": "High",
+        "key": "unsafe-command-persistence",
+        "likelihood": "Medium",
+        "mitigation": [
+          "Use SafeCommandParser through VerificationScriptExporter.",
+          "Keep unsupported contracts in skippedTasks."
+        ],
+        "title": "Unsafe command persistence",
+        "validation": ["VerificationScriptExporterTests"]
+      },
+      {
+        "description": ".anvil/bin or .anvil/specs/bundle.json remains ignored, hiding proof from review.",
+        "id": "66666666-6666-5666-8666-666666666662",
+        "impact": "Medium",
+        "key": "unreviewable-generated-proof",
+        "likelihood": "Medium",
+        "mitigation": [
+          "Unignore only the spec bundle, README, index, and generated verification scripts."
+        ],
+        "title": "Unreviewable generated proof",
+        "validation": [
+          "git check-ignore -v .anvil/bin/verification-tasks.json .anvil/specs/bundle.json"
+        ]
+      }
+    ],
+    "summary": "Unsafe commands must remain skipped and generated proof must be reviewable."
+  },
+  "stories": [
+    {
+      "id": "US-1",
+      "title": "Maintainer Export Deterministic Verification Scripts",
+      "narrative": "As a maintainer I want export deterministic verification scripts from the approved workspace spec so that verification can be rerun without an agent loop or GUI-only action",
+      "criteria": [
+        {
+          "id": "AC-1",
+          "given": ".anvil/specs/bundle.json is present and approved",
+          "when": "anvilctl verification-scripts-export runs",
+          "then": ".anvil/bin/verification-tasks.json, README.md, and executable verify scripts are written",
+          "verificationContract": "swift test --package-path anvil-macOS --filter VerificationScriptExporterTests --disable-swift-testing"
+        },
+        {
+          "id": "AC-2",
+          "given": "a task has unsupported manual prose",
+          "when": "the exporter evaluates the manifest",
+          "then": "the task appears in skippedTasks with a reason",
+          "verificationContract": "swift test --package-path anvil-macOS --filter VerificationScriptExporterTests --disable-swift-testing"
+        }
+      ],
+      "priority": "must"
+    },
+    {
+      "id": "US-2",
+      "title": "Maintainer Review Export Artifacts",
+      "narrative": "As a maintainer I want keep generated verification export artifacts reviewable so that reviewers can see exactly what was exported and skipped",
+      "criteria": [
+        {
+          "id": "AC-1",
+          "given": "repository ignore rules are evaluated",
+          "when": ".anvil/bin/verification-tasks.json and .anvil/specs/bundle.json are checked",
+          "then": "they are not ignored",
+          "verificationContract": "swift test --package-path anvil-macOS --filter ProjectArtifactCatalogTests/testRepositoryVerificationExportArtifactsAreLoadable --disable-swift-testing"
+        }
+      ],
+      "priority": "must"
+    }
+  ],
+  "strategy": {
+    "assumptions": [
+      "No live LLM, credential, production, or GUI-only path is required."
+    ],
+    "decisions": [
+      {
+        "alternatives": [],
+        "category": "Testing",
+        "chosenOption": "scripts/anvilctl verification-scripts-export",
+        "confidence": 0.9,
+        "heuristics": ["Reuse existing exporter and runner behavior."],
+        "id": "77777777-7777-5777-8777-777777777771",
+        "key": "headless-verification-script-export",
+        "rationale": "The exporter already owns script rendering, safe-command filtering, skipped-task accounting, and JSON index shape.",
+        "title": "Headless verification script export",
+        "validationPlan": [
+          "swift test --filter AnvilCLIContractTests/testVerificationScriptsExportCommandWritesIndexScriptsAndSkippedReasons --disable-swift-testing"
+        ]
+      },
+      {
+        "alternatives": [],
+        "category": "Deployment",
+        "chosenOption": "Unignore only the spec bundle and .anvil/bin verification artifacts.",
+        "confidence": 0.85,
+        "heuristics": ["Keep local runtime .anvil state ignored."],
+        "id": "77777777-7777-5777-8777-777777777772",
+        "key": "track-generated-proof-artifacts",
+        "rationale": "The repo needs reviewable proof of what was exported while preserving local runtime privacy.",
+        "title": "Track generated proof artifacts",
+        "validationPlan": [
+          "git check-ignore -v .anvil/bin/verification-tasks.json .anvil/specs/bundle.json"
+        ]
+      }
+    ],
+    "deferredDecisions": [],
+    "evaluationAxes": [
+      "Delivery speed",
+      "Security and privacy",
+      "Reliability and performance",
+      "Operational burden",
+      "Reversibility"
+    ],
+    "generatedAt": "2026-07-04T03:45:00Z",
+    "openQuestions": [],
+    "summary": "Use the existing VerificationScriptExporter and VerificationScriptRunner as the implementation, with a narrow terminal export surface for reproducible workspace generation."
+  },
+  "threatModel": {
+    "generatedAt": "2026-07-04T03:45:00Z",
+    "sensitiveAssets": [
+      "Workspace files under /Users/demo/workspaces/demo-project",
+      "Local environment variables available to test commands"
+    ],
+    "summary": "Generated verification scripts are local executable artifacts and must not turn arbitrary prose or compound shell text into code.",
+    "threats": [
+      {
+        "abuseCase": "A compound shell command or manual prose contract is persisted as executable code.",
+        "controls": [
+          "Parse every contract with SafeCommandParser.",
+          "Record unsupported tasks in skippedTasks."
+        ],
+        "id": "88888888-8888-5888-8888-888888888881",
+        "surface": ".anvil/bin/verify-*.sh",
+        "title": "Unsafe command export",
+        "verification": ["VerificationScriptExporterTests"]
+      },
+      {
+        "abuseCase": "Operators run scripts without seeing which tasks were skipped.",
+        "controls": [
+          "Persist exportedScripts and skippedTasks in the index and README."
+        ],
+        "id": "88888888-8888-5888-8888-888888888882",
+        "surface": ".anvil/bin/verification-tasks.json",
+        "title": "Hidden export boundary",
+        "verification": [
+          "Decode verification-tasks.json and report both arrays."
+        ]
+      }
+    ]
+  },
+  "verificationPlan": {
+    "generatedAt": "2026-07-04T03:45:00Z",
+    "layers": [
+      {
+        "command": "swift test --filter VerificationScriptExporterTests --disable-swift-testing",
+        "id": "aaaaaaaa-aaaa-5aaa-8aaa-aaaaaaaaaaa1",
+        "owner": "AnvilMacOSTests",
+        "scope": "Exporter script rendering and skipped-task accounting",
+        "title": "Exporter behavior"
+      },
+      {
+        "command": "swift test --filter VerificationScriptRunnerTests --disable-swift-testing",
+        "id": "aaaaaaaa-aaaa-5aaa-8aaa-aaaaaaaaaaa2",
+        "owner": "AnvilMacOSTests",
+        "scope": "Runner path and executable checks",
+        "title": "Runner behavior"
+      },
+      {
+        "command": "swift test --filter AnvilCLIContractTests --disable-swift-testing",
+        "id": "aaaaaaaa-aaaa-5aaa-8aaa-aaaaaaaaaaa3",
+        "owner": "AnvilMacOSTests",
+        "scope": "anvilctl export command",
+        "title": "CLI export contract"
+      },
+      {
+        "command": "swift test --filter ProjectArtifactCatalogTests --disable-swift-testing",
+        "id": "aaaaaaaa-aaaa-5aaa-8aaa-aaaaaaaaaaa4",
+        "owner": "AnvilMacOSTests",
+        "scope": "Repository spec bundle and verification index",
+        "title": "Repository artifact contract"
+      }
+    ],
+    "qualityGates": [
+      "Run real workspace export.",
+      "Run every exported script.",
+      "Confirm ignore boundary."
+    ],
+    "summary": "Validate exporter, runner, CLI, repository artifact, real export, ignore-boundary, and generated-script behavior."
+  },
+  "version": 1
+}
