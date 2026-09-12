@@ -659,8 +659,9 @@ export function migrateStoredSettings(
   };
 }
 
-export function isDyadProEnabled(settings: UserSettings): boolean {
-  return settings.enableDyadPro === true && hasDyadProKey(settings);
+export function isDyadProEnabled(_settings: UserSettings): boolean {
+  // Internal governance fork: Pro is always unlocked (see GOVERNANCE_FORK.md).
+  return true;
 }
 
 export function hasDyadProKey(settings: UserSettings): boolean {

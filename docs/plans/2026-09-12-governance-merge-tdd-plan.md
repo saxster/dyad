@@ -150,7 +150,7 @@ Progress: check the box when the task's commit exists and its verify commands pa
       Files: create `GOVERNANCE_FORK.md` (root). Content: private internal-use fork; core Apache-2.0; `src/pro` FSL-1.1-ALv2 permits internal use; Anvil code is owner's Apache-2.0; no external distribution. No test (docs only).
       Verify: file exists; `npm run fmt` clean.
 
-- [ ] **T0.3 Unlock Pro internally.**
+- [x] **T0.3 Unlock Pro internally.**
       Seam: S7. Files: test `src/lib/__tests__/pro_unlock.test.ts` (or extend existing schemas test file), impl `src/lib/schemas.ts` (`isDyadProEnabled`, line ~662).
       RED: `it("treats Pro as enabled for the internal fork without a gateway key", ...)` asserting `isDyadProEnabled({} as UserSettings)` → `true`.
       GREEN: return `true` with a one-line comment referencing `GOVERNANCE_FORK.md`. Do not touch `hasDyadProKey`.

@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { migrateStoredSettings, StoredUserSettingsSchema } from "@/lib/schemas";
+import {
+  isDyadProEnabled,
+  migrateStoredSettings,
+  StoredUserSettingsSchema,
+  type UserSettings,
+} from "@/lib/schemas";
 
 const baseSettings = {
   selectedModel: { name: "auto", provider: "auto" },
@@ -134,5 +139,11 @@ describe("migrateStoredSettings", () => {
     const stored = StoredUserSettingsSchema.parse(baseSettings);
 
     expect(migrateStoredSettings(stored).agentToolConsents).toBeUndefined();
+  });
+});
+
+describe("isDyadProEnabled (internal fork)", () => {
+  it("treats Pro as enabled for the internal fork without a gateway key", () => {
+    expect(isDyadProEnabled({} as UserSettings)).toBe(true);
   });
 });
