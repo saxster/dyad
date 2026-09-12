@@ -185,7 +185,7 @@ Reference: `ANVIL/.anvil/specs/bundle.json` (keys: `approvalStatus, approvedAt, 
       Same files. RED: `it("parses its own serialized output back into equal stories")` (serializer output → parser → deep-equal stories array; provenance-level fields ignored).
       GREEN: `parseRequirementsMarkdown(md)`. Edge test: CRLF input parses identically (repo rule on line endings).
 
-- [ ] **T1.6 ArtifactStore — save/load bundle.**
+- [x] **T1.6 ArtifactStore — save/load bundle.**
       Seam S2. Files: test + impl `src/governance/artifacts/artifact_store.ts`.
       RED: `it("writes bundle.json and loads it back")` with root = `await fs.mkdtemp(...)`: `saveBundle(root, bundle)` then `loadBundle(root)` deep-equals. Also asserts file is written to `<root>/.dyad/specs/bundle.json`.
       GREEN: class with injected root path defaulting to app path; atomic write (tmp file + rename).
