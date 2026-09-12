@@ -223,7 +223,7 @@ Reference: `ANVIL/.anvil/specs/bundle.json` (keys: `approvalStatus, approvedAt, 
       Same files. RED: `it("appends ordered events to a governance run")` (seq monotonic; payloadJson round-trips).
       GREEN: `appendRunEvent` helper exported for later phases.
 
-- [ ] **T2.6 Renderer plumbing (minimal).**
+- [x] **T2.6 Renderer plumbing (minimal).**
       Seam S10. Files: `src/hooks/use_governance.ts` (React Query hook following existing IPC hook conventions in `rules/electron-ipc.md`), test colocated with mocked invoke.
       RED: `it("loads the spec bundle for an app and exposes approval status")`.
       **Phase gate:** `npm run ts && npm run lint && npm run fmt` clean; full targeted suites green; commit.

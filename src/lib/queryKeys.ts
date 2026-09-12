@@ -473,6 +473,15 @@ export const queryKeys = {
   media: {
     all: ["media"] as const,
   },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Governance (private fork)
+  // ─────────────────────────────────────────────────────────────────────────────
+  governance: {
+    all: ["governance"] as const,
+    specBundle: ({ appId }: { appId: number | null }) =>
+      ["governance", "specBundle", appId] as const,
+  },
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -547,4 +556,7 @@ export type AppQueryKey =
   | QueryKeyOf<(typeof queryKeys.neon)[keyof typeof queryKeys.neon]>
   | QueryKeyOf<(typeof queryKeys.coolify)[keyof typeof queryKeys.coolify]>
   | QueryKeyOf<(typeof queryKeys.appEnvVars)[keyof typeof queryKeys.appEnvVars]>
-  | QueryKeyOf<(typeof queryKeys.media)[keyof typeof queryKeys.media]>;
+  | QueryKeyOf<(typeof queryKeys.media)[keyof typeof queryKeys.media]>
+  | QueryKeyOf<
+      (typeof queryKeys.governance)[keyof typeof queryKeys.governance]
+    >;
