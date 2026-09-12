@@ -156,7 +156,7 @@ Progress: check the box when the task's commit exists and its verify commands pa
       GREEN: return `true` with a one-line comment referencing `GOVERNANCE_FORK.md`. Do not touch `hasDyadProKey`.
       Verify: `npm test -- <file>`; `npm run ts`.
 
-- [ ] **T0.4 Install pre-commit.**
+- [x] **T0.4 Install pre-commit.**
       `npm run init-precommit`. Verify: `git commit` on a scratch change runs fmt/lint. Revert scratch.
 
 ### Phase 1 — Spec bundle schema + artifact store (8 tasks)
