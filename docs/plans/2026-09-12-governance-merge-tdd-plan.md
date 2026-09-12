@@ -255,7 +255,7 @@ Reference: `ANVIL/anvil-macOS/Core/Workflow/LeanLane.swift:14-42` (exact signal 
       RED: `it("defaults enableGovernance to true")` in the settings test; UI toggle renders (S10 test).
       GREEN: `enableGovernance: true` default (private fork: governance is the default), `governanceRigor: "auto" | "surgical" | "standard" | "architectural" | "off"`.
 
-- [ ] **T3.6 Wire routing into turn dispatch.**
+- [x] **T3.6 Wire routing into turn dispatch.**
       Seam S7. Files: extend `src/ipc/handlers/chat_mode_resolution.test.ts`-style test; impl in a new `src/governance/core/route_turn.ts` called from the chat stream pre-dispatch (find the seam where mode is resolved per turn; additive call).
       RED: `it("routes a benign prompt in plan mode to lean direct planning")`, `it("routes a secret-touching prompt to governed spec-first")` — assert returned `{ lane, tier, mode }`.
       GREEN: compose T3.1–T3.5. Store decision as a `governance_run` row (lane/tier) via T2.5.

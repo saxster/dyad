@@ -18,6 +18,9 @@ import {
 } from "ai";
 
 import { db } from "../../db";
+import { governanceRuns } from "../../db/schema";
+import { routeTurn } from "../../governance/core/route_turn";
+import { appendRunEvent } from "./governance_handlers";
 import { apps, chats, messages } from "../../db/schema";
 import { scheduleChatSearchIndexing } from "../../pro/main/ipc/handlers/local_agent/chat_search_indexer";
 import { and, eq, isNull } from "drizzle-orm";
@@ -1147,6 +1150,35 @@ export function registerChatStreamHandlers() {
           settings: { ...baseSettings, selectedModel },
         });
       assertChatModeCompatibleWithModel(storedSettings, selectedChatMode);
+
+      // Governance routing (private fork): screen every turn and record the
+      // decision as a governance run. Best-effort: a recording failure must
+      // never block the turn itself.
+      try {
+        const governanceDecision = routeTurn({
+          prompt: req.prompt,
+          mode: selectedChatMode,
+          enableGovernance: storedSettings.enableGovernance ?? true,
+          governanceRigor: storedSettings.governanceRigor ?? "auto",
+        });
+        const governanceRun = db
+          .insert(governanceRuns)
+          .values({
+            appId: chat.appId,
+            chatId: req.chatId,
+            lane: governanceDecision.lane,
+            tier: governanceDecision.tier,
+            status: "running",
+          })
+          .returning({ id: governanceRuns.id })
+          .get();
+        await appendRunEvent(governanceRun.id, "turn_routed", {
+          mode: governanceDecision.mode,
+          tier: governanceDecision.tier,
+        });
+      } catch (error) {
+        log.warn("failed to record governance routing", error);
+      }
 
       // Reserve quota before redo or attachment persistence. The reservation
       // is converted to a durable message mark only after turn acceptance.

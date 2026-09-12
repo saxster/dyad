@@ -39,3 +39,17 @@
   `@/ipc/contracts/governance_contracts` instead of adding a re-export in
   `src/ipc/types/index.ts` (outside the task's file list). If a later task
   needs the unified `ipc` namespace, add the re-export there.
+
+## 2026-09-12 — Phase 3 gate
+
+- T3.1–T3.6 complete. Lane screen (Anvil signal lists), rigor axes
+  (deterministic v1, hand-worked table), tier mapping, `enableGovernance` /
+  `governanceRigor` settings with Settings-page switch, and `routeTurn`
+  wired additively into the chat stream pre-dispatch right after mode
+  resolution (records a `governance_runs` row + `turn_routed` event
+  best-effort via `appendRunEvent`).
+- Gate: `npm run ts` exit 0; fmt/lint clean (0 errors); 187/187 tests green
+  across 11 suites including the existing chat stream handler suites.
+- Environment: after the session sandbox began denying writes under
+  `/var/folders/.../T`, tests must run with `export TMPDIR=/tmp/dyad-tmp`
+  (os.tmpdir() is honored by vitest and the node --test pre-chain).
