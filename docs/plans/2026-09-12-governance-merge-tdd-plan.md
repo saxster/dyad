@@ -299,7 +299,7 @@ Reference: `ANVIL/anvil-macOS/Core/Workflow/LeanLane.swift:14-42` (exact signal 
       RED: `it("renders criteria with their verification commands and wires approve")` (mocked hook).
       GREEN: component + mount into the chat right panel where plan review renders today (find the plan-mode plan display component and add a governed variant).
 
-- [ ] **T4.8 Reject → regenerate loop.**
+- [x] **T4.8 Reject → regenerate loop.**
       Same integration file as T4.5. RED: `it("a rejected bundle returns the chat to planning with feedback injected")` — next agent turn's message list contains the rejection feedback (assert on prepared messages via the harness).
       GREEN: on reject, append feedback message + set status draft.
       **Phase gate:** `npm run build` + one E2E smoke: plan-mode governed flow writes spec → approve → turn runs. Record result in `docs/plans/PROGRESS_LOG.md`.

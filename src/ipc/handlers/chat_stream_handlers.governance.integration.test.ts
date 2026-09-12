@@ -93,4 +93,48 @@ describe("governance approval gate (integration)", () => {
     const messages = await harness.db.query.messages.findMany();
     expect(messages.some((m) => m.role === "assistant")).toBe(true);
   }, 60_000);
+
+  it("a rejected bundle returns the chat to planning with feedback injected", async () => {
+    // A fresh pending bundle for the reject path (the previous test approved
+    // the earlier version, and approved → draft would require force).
+    const store = new ArtifactStore(harness.appDir);
+    const bundle = parseSpecBundle(readFileSync(FIXTURE_PATH, "utf8"));
+    const pending = await store.saveBundle({
+      ...bundle,
+      approvalStatus: "pending_approval",
+      approvedAt: undefined,
+    });
+    harness.db
+      .insert(specBundles)
+      .values({
+        appId: harness.appId,
+        chatId: harness.chatId,
+        artifactVersion: pending.version,
+        approvalStatus: "pending_approval",
+      })
+      .run();
+
+    const approve = getRegisteredHandlerForTesting(
+      "governance:approve-spec-bundle",
+    );
+    const decision = (await approve({} as never, {
+      appId: harness.appId,
+      decision: "reject",
+      feedback: "stories lack verification contracts",
+    })) as { approvalStatus: string };
+    expect(decision.approvalStatus).toBe("draft");
+
+    const latestRow = harness.db
+      .select()
+      .from(specBundles)
+      .all()
+      .sort((a, b) => b.id - a.id)[0];
+    expect(latestRow.approvalStatus).toBe("draft");
+
+    // The next turn's prepared LLM messages must carry the rejection feedback.
+    const turn = await harness.streamChat("[dump]");
+    expect(turn.eventsFor("chat:response:error")).toHaveLength(0);
+    const dump = harness.getServerDump();
+    expect(dump.text).toContain("stories lack verification contracts");
+  }, 60_000);
 });

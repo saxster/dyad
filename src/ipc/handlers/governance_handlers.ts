@@ -1,6 +1,6 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNotNull } from "drizzle-orm";
 import { db } from "@/db";
-import { apps, governanceRunEvents, specBundles } from "@/db/schema";
+import { apps, governanceRunEvents, messages, specBundles } from "@/db/schema";
 import { DyadError, DyadErrorKind } from "@/errors/dyad_error";
 import { ArtifactStore } from "@/governance/artifacts/artifact_store";
 import {
@@ -122,6 +122,28 @@ export function registerGovernanceHandlers(): void {
             ? { ...current.provenance, lastRejectionFeedback: feedback }
             : current.provenance,
         };
+      }
+
+      if (decision === "reject" && feedback) {
+        // Return the chat to planning: inject the rejection feedback so the
+        // next turn's prepared messages carry it to the model.
+        const latestChatRow = await db
+          .select({ chatId: specBundles.chatId })
+          .from(specBundles)
+          .where(
+            and(eq(specBundles.appId, appId), isNotNull(specBundles.chatId)),
+          )
+          .orderBy(desc(specBundles.id))
+          .get();
+        if (latestChatRow?.chatId) {
+          db.insert(messages)
+            .values({
+              chatId: latestChatRow.chatId,
+              role: "user",
+              content: `Your spec was rejected. Feedback: ${feedback}\nRevise the spec with write_spec and present it for approval again.`,
+            })
+            .run();
+        }
       }
 
       const stamped = await store.saveBundle(updated);
