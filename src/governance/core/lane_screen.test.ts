@@ -45,3 +45,27 @@ describe("screenLane", () => {
     expect(screenLane("Please GIT PUSH to main")).toBe("governed");
   });
 });
+
+describe("screenLane breadth signals", () => {
+  it.each(
+    [
+      "refactor across",
+      "rename everywhere",
+      "every file",
+      "all files",
+      "entire codebase",
+      "across the codebase",
+      "whole repo",
+      "migrate ",
+      "rewrite the ",
+    ].map((signal) => ({ signal })),
+  )("routes a prompt containing $signal to governed", ({ signal }) => {
+    const prompt = `broad request: ${signal}modules need attention`;
+
+    expect(screenLane(prompt)).toBe("governed");
+  });
+
+  it("returns lean for a benign surgical prompt", () => {
+    expect(screenLane("fix the typo in button label")).toBe("lean");
+  });
+});

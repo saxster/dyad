@@ -237,7 +237,7 @@ Reference: `ANVIL/anvil-macOS/Core/Workflow/LeanLane.swift:14-42` (exact signal 
       RED: `it.each` over EVERY security signal (`"rm ", "git push", "git commit", "git reset", "force push", "sudo ", "chmod ", "docker ", "npm install", "brew ", "kubectl", "terraform", "deploy", "production", ".env", "secret", "credential", "password", "api key", "api_key", "private key", "package.swift", "migration", "drop table", "drop database", "prod database"`) asserting a prompt containing it → `"governed"`.
       GREEN: `screenLane(prompt): "lean" | "governed"`, case-insensitive substring match.
 
-- [ ] **T3.2 Lane screen — breadth + lean default.**
+- [x] **T3.2 Lane screen — breadth + lean default.**
       Same files. RED: `it.each` breadth signals (`"refactor across", "rename everywhere", "every file", "all files", "entire codebase", "across the codebase", "whole repo", "migrate ", "rewrite the "`) → governed; `it("returns lean for a benign surgical prompt")` ("fix the typo in button label") → lean.
       GREEN: second list; default lean.
 

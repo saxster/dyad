@@ -28,11 +28,26 @@ const SECURITY_SIGNALS = [
   "prod database",
 ];
 
+const BREADTH_SIGNALS = [
+  "refactor across",
+  "rename everywhere",
+  "every file",
+  "all files",
+  "entire codebase",
+  "across the codebase",
+  "whole repo",
+  "migrate ",
+  "rewrite the ",
+];
+
 export type ExecutionLane = "lean" | "governed";
 
 export function screenLane(prompt: string): ExecutionLane {
   const lowered = prompt.toLowerCase();
   if (SECURITY_SIGNALS.some((signal) => lowered.includes(signal))) {
+    return "governed";
+  }
+  if (BREADTH_SIGNALS.some((signal) => lowered.includes(signal))) {
     return "governed";
   }
   return "lean";
