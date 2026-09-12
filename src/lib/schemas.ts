@@ -550,6 +550,10 @@ const BaseUserSettingsFields = {
   enableOwnServerDeployment: z.boolean().optional(),
   enableTestRunInPreview: z.boolean().optional(),
   enableAutoUpdate: z.boolean(),
+  enableGovernance: z.boolean().optional(),
+  governanceRigor: z
+    .enum(["auto", "surgical", "standard", "architectural", "off"])
+    .optional(),
   releaseChannel: ReleaseChannelSchema,
   runtimeMode2: RuntimeMode2Schema.optional(),
   customNodePath: z.string().optional().nullable(),

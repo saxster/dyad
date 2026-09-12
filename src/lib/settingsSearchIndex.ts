@@ -15,6 +15,7 @@ export const SETTING_IDS = {
   theme: "setting-theme",
   zoom: "setting-zoom",
   autoUpdate: "setting-auto-update",
+  enableGovernance: "setting-enable-governance",
   releaseChannel: "setting-release-channel",
   runtimeMode: "setting-runtime-mode",
   nodeRuntime: "setting-node-runtime",
@@ -87,6 +88,15 @@ export const SETTINGS_SEARCH_INDEX: SearchableSettingItem[] = [
     label: "Auto Update",
     description: "Automatically update the app when new versions are available",
     keywords: ["update", "automatic", "version", "upgrade"],
+    sectionId: SECTION_IDS.general,
+    sectionLabel: "General",
+  },
+  {
+    id: SETTING_IDS.enableGovernance,
+    label: "Governance",
+    description:
+      "Route every turn through the governed pipeline (spec, verification, memory)",
+    keywords: ["governance", "spec", "verification", "rigor", "council"],
     sectionId: SECTION_IDS.general,
     sectionLabel: "General",
   },

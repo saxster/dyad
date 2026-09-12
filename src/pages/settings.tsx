@@ -23,6 +23,7 @@ import { AutoExpandPreviewSwitch } from "@/components/AutoExpandPreviewSwitch";
 import { KeepPreviewsRunningSwitch } from "@/components/KeepPreviewsRunningSwitch";
 import { ChatEventNotificationSwitch } from "@/components/ChatEventNotificationSwitch";
 import { AutoUpdateSwitch } from "@/components/AutoUpdateSwitch";
+import { GovernanceSwitch } from "@/components/GovernanceSwitch";
 import { ReleaseChannelSelector } from "@/components/ReleaseChannelSelector";
 import { NeonIntegration } from "@/components/NeonIntegration";
 import { RuntimeModeSelector } from "@/components/RuntimeModeSelector";
@@ -445,6 +446,14 @@ export function GeneralSettings({ appVersion }: { appVersion: string | null }) {
         <p className={hint}>
           This will automatically update the app when new versions are
           available.
+        </p>
+      </div>
+
+      <div id={SETTING_IDS.enableGovernance} className="space-y-1.5">
+        <GovernanceSwitch />
+        <p className={hint}>
+          Route every turn through the governed pipeline (spec, verification,
+          memory). This is the internal governance fork default.
         </p>
       </div>
 

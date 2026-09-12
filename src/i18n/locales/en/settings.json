@@ -81,6 +81,7 @@
     "selectDefaultChatMode": "Select default chat mode",
     "autoApprove": "Auto-approve changes",
     "autoApproveDescription": "This will automatically approve code changes and run them.",
+    "governance": "Governance",
     "appBlueprint": "App Blueprint",
     "appBlueprintDescription": "When creating a new app, generate a lightweight app blueprint (name, design, color, template) before building."
   },

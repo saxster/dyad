@@ -250,7 +250,7 @@ Reference: `ANVIL/anvil-macOS/Core/Workflow/LeanLane.swift:14-42` (exact signal 
       Same files. RED: composite 0–3 → `surgical`, 4–7 → `standard`, 8–12 → `architectural`; explicit user override wins.
       GREEN: `classifyTier(score, override?)`.
 
-- [ ] **T3.5 Setting toggle.**
+- [x] **T3.5 Setting toggle.**
       Read `rules/adding-settings.md`. Files: settings schema + defaults + Settings page row.
       RED: `it("defaults enableGovernance to true")` in the settings test; UI toggle renders (S10 test).
       GREEN: `enableGovernance: true` default (private fork: governance is the default), `governanceRigor: "auto" | "surgical" | "standard" | "architectural" | "off"`.

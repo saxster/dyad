@@ -60,6 +60,8 @@ export const DEFAULT_SETTINGS: UserSettings = {
   enableAppBlueprint: true,
   enableTestingForNewApps: DEFAULT_ENABLE_TESTING_FOR_NEW_APPS,
   enableAutoUpdate: true,
+  enableGovernance: true,
+  governanceRigor: "auto",
   releaseChannel: "stable",
   selectedTemplateId: DEFAULT_TEMPLATE_ID,
   selectedThemeId: DEFAULT_THEME_ID,

@@ -92,6 +92,24 @@ describe("readSettings", () => {
   });
 
   describe("when settings file does not exist", () => {
+    it("defaults enableGovernance to true", () => {
+      mockFs.existsSync.mockReturnValue(false);
+      mockFs.writeFileSync.mockImplementation(() => {});
+
+      const result = readSettings();
+
+      expect(result.enableGovernance).toBe(true);
+    });
+
+    it("defaults governanceRigor to auto", () => {
+      mockFs.existsSync.mockReturnValue(false);
+      mockFs.writeFileSync.mockImplementation(() => {});
+
+      const result = readSettings();
+
+      expect(result.governanceRigor).toBe("auto");
+    });
+
     it("should create default settings file and return default settings", () => {
       mockFs.existsSync.mockReturnValue(false);
       mockFs.writeFileSync.mockImplementation(() => {});
@@ -116,6 +134,7 @@ describe("readSettings", () => {
           "enableCodeExplorer": true,
           "enableContextCompaction": true,
           "enableExplorerSubagent": true,
+          "enableGovernance": true,
           "enableImplementerSubagent": false,
           "enableMcpToolSearch": true,
           "enableMultiWindow": false,
@@ -126,6 +145,7 @@ describe("readSettings", () => {
           "enableSandboxScriptExecution": true,
           "enableTestingForNewApps": false,
           "experiments": {},
+          "governanceRigor": "auto",
           "hasRunBefore": false,
           "isRunning": false,
           "lastKnownPerformance": undefined,
@@ -557,6 +577,7 @@ describe("readSettings", () => {
           "enableCodeExplorer": true,
           "enableContextCompaction": true,
           "enableExplorerSubagent": true,
+          "enableGovernance": true,
           "enableImplementerSubagent": false,
           "enableMcpToolSearch": true,
           "enableMultiWindow": false,
@@ -567,6 +588,7 @@ describe("readSettings", () => {
           "enableSandboxScriptExecution": true,
           "enableTestingForNewApps": false,
           "experiments": {},
+          "governanceRigor": "auto",
           "hasRunBefore": false,
           "isRunning": false,
           "lastKnownPerformance": undefined,
