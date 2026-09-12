@@ -241,7 +241,7 @@ Reference: `ANVIL/anvil-macOS/Core/Workflow/LeanLane.swift:14-42` (exact signal 
       Same files. RED: `it.each` breadth signals (`"refactor across", "rename everywhere", "every file", "all files", "entire codebase", "across the codebase", "whole repo", "migrate ", "rewrite the "`) → governed; `it("returns lean for a benign surgical prompt")` ("fix the typo in button label") → lean.
       GREEN: second list; default lean.
 
-- [ ] **T3.3 Rigor axes scoring (deterministic v1).**
+- [x] **T3.3 Rigor axes scoring (deterministic v1).**
       Seam S1. Files: test + impl `src/governance/core/rigor_tiers.ts`.
       RED: table-driven — prompts mentioning auth/payments/migrations raise Security Sensitivity; "rewrite the data layer" raises Domain Breadth; first-ever mention of unknown subsystem raises Novelty (v1: keyword `unfamiliar|new integration|never`); touching `src/db|migrations|package.json` raises Blast Radius. Each axis clamps 0–3.
       GREEN: `scoreRigorAxes(prompt, context): { breadth, security, novelty, blastRadius }`.
