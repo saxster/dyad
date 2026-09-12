@@ -7,6 +7,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { ArtifactStore } from "./artifact_store";
 import { parseSpecBundle } from "../core/spec_bundle_schemas";
+import type { SpecBundle } from "../core/spec_bundle_schemas";
+import { DyadErrorKind } from "@/errors/dyad_error";
 
 const FIXTURE_PATH = resolve(
   __dirname,
@@ -63,5 +65,34 @@ describe("ArtifactStore", () => {
       "Maintainer Export Deterministic Verification Scripts",
     );
     expect(history[1].bundle.stories[0].title).toBe("Mutated title");
+  });
+
+  it("also writes requirements.md next to bundle.json", async () => {
+    const store = await makeStore();
+    const bundle = parseSpecBundle(readFileSync(FIXTURE_PATH, "utf8"));
+
+    await store.saveBundle(bundle);
+
+    const mdPath = join(store.root, ".dyad", "specs", "requirements.md");
+    expect(existsSync(mdPath)).toBe(true);
+    const md = readFileSync(mdPath, "utf8");
+    expect(md).toContain(
+      `### ${bundle.stories[0].id}: ${bundle.stories[0].title}`,
+    );
+  });
+
+  it("refuses to save an unparseable bundle", async () => {
+    const store = await makeStore();
+    const unparseable = {
+      stories: "not-a-story-array",
+    } as unknown as SpecBundle;
+
+    await expect(store.saveBundle(unparseable)).rejects.toMatchObject({
+      name: "DyadError",
+      kind: DyadErrorKind.Validation,
+    });
+    expect(existsSync(join(store.root, ".dyad", "specs", "bundle.json"))).toBe(
+      false,
+    );
   });
 });

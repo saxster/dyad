@@ -194,7 +194,7 @@ Reference: `ANVIL/.anvil/specs/bundle.json` (keys: `approvalStatus, approvedAt, 
       Same files. RED: `it("snapshots each save into history with a version stamp")` — save v1, mutate, save v2 → `listHistory(root)` returns two entries with `version` increasing and frozen v1 content.
       GREEN: history under `.dyad/specs/history/<version>-<id>.json`.
 
-- [ ] **T1.8 ArtifactStore — writes the human-readable pair.**
+- [x] **T1.8 ArtifactStore — writes the human-readable pair.**
       Same files. RED: `it("also writes requirements.md next to bundle.json")` and `it("refuses to save an unparseable bundle")` (zod failure throws `DyadError` kind `Validation` — read `rules/dyad-errors.md`).
       GREEN: pair-write; validation error mapping.
 

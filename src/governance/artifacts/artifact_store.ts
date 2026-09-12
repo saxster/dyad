@@ -1,10 +1,13 @@
 import { mkdir, readFile, readdir, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { DyadError, DyadErrorKind } from "@/errors/dyad_error";
 import {
   parseSpecBundle,
   serializeSpecBundle,
+  SpecBundleSchema,
   type SpecBundle,
 } from "../core/spec_bundle_schemas";
+import { renderRequirementsMarkdown } from "../core/requirements_markdown";
 
 export interface BundleHistoryEntry {
   version: number;
@@ -26,7 +29,19 @@ export class ArtifactStore {
     return join(this.specsDir, "bundle.json");
   }
 
+  private get requirementsPath(): string {
+    return join(this.specsDir, "requirements.md");
+  }
+
   async saveBundle(bundle: SpecBundle): Promise<SpecBundle> {
+    const parsed = SpecBundleSchema.safeParse(bundle);
+    if (!parsed.success) {
+      throw new DyadError(
+        `invalid spec bundle: ${parsed.error.message}`,
+        DyadErrorKind.Validation,
+      );
+    }
+
     const version = (await this.currentMaxVersion()) + 1;
     const stamped: SpecBundle = { ...bundle, version };
 
@@ -34,6 +49,10 @@ export class ArtifactStore {
     const historyPath = join(this.historyDir, `${version}-${stamped.id}.json`);
     await this.atomicWrite(historyPath, serializeSpecBundle(stamped));
     await this.atomicWrite(this.bundlePath, serializeSpecBundle(stamped));
+    await this.atomicWrite(
+      this.requirementsPath,
+      renderRequirementsMarkdown(stamped),
+    );
     return stamped;
   }
 
