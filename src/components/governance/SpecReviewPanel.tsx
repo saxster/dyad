@@ -1,7 +1,8 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { RunTimeline } from "@/components/governance/RunTimeline";
+import { ThoughtPanel } from "@/components/governance/ThoughtPanel";
 import { diffBundles, renderSpecDiff } from "@/governance/core/spec_diff";
 import { useGovernanceSpecBundle } from "@/hooks/use_governance";
 import { useSettings } from "@/hooks/useSettings";
@@ -33,6 +34,16 @@ export function SpecReviewPanel({ appId }: { appId: number }) {
     queryKey: queryKeys.governance.run({ runId: latestRun?.id ?? null }),
     queryFn: () => governanceClient.getGovernanceRun({ runId: latestRun!.id }),
     enabled: latestRun !== null,
+  });
+  const thoughtsQuery = useQuery({
+    queryKey: queryKeys.governance.thoughts({ appId }),
+    queryFn: () => governanceClient.listThoughts({ appId }),
+  });
+  const startIncubation = useMutation({
+    mutationFn: (input: { body: string }) =>
+      governanceClient.startIncubation({ appId, body: input.body }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.governance.all }),
   });
 
   if (settings?.enableGovernance === false) {
@@ -151,6 +162,22 @@ export function SpecReviewPanel({ appId }: { appId: number }) {
           }))}
         />
       ) : null}
+
+      <ThoughtPanel
+        thoughts={(thoughtsQuery.data?.thoughts ?? []).map((thought) => ({
+          ...thought,
+          id: String(thought.id),
+        }))}
+        onSubmit={(body) => startIncubation.mutate({ body })}
+        onStartIncubation={(id) => {
+          const thought = thoughtsQuery.data?.thoughts.find(
+            (candidate) => String(candidate.id) === id,
+          );
+          if (thought) {
+            startIncubation.mutate({ body: thought.body });
+          }
+        }}
+      />
     </div>
   );
 }

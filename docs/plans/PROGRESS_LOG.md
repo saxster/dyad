@@ -285,3 +285,23 @@ P5–P8 passed, first unchecked task T9.1.
      hook, so DAG turns don't run spec verification — consistent with the fast path
      replacing (not augmenting) the LLM stream; verification of DAG runs is deferred
      until the orchestrator integration work asks for it.
+
+## 2026-09-14 — Phase 10 gate PASSED
+
+- T10.1–T10.6 complete and committed: incubation state machine ideate→specify→challenge→
+  commit→build (single-step advance/regress, explicit-`to` jump rejection, hypothesis payload
+  with ≥1 success criterion required to enter commit — T10.1); incubation session persistence
+  `save/loadIncubationSession` + `appendTranscript` under `.dyad/incubation/sessions/<id>/`
+  (T10.2); `seedSpecBundleFromHypothesis` seeding a draft bundle whose story criteria come
+  from success criteria with no verification contracts (T10.3); `thoughts` + `thought_links`
+  tables (drizzle migration 0054) with `ThoughtStore` record/list(tag,status)/promote/markDone/
+  link (T10.4); constellation detection (maximal cliques over pairwise shared-tags + Jaccard,
+  dominant tags by member count then alpha — T10.5); ThoughtPanel (capture textarea with
+  ⌘⏎/Ctrl+⏎, All/Todo/Tags tabs, promote button) + `governance:start-incubation` /
+  `governance:list-thoughts` contracts and handlers + SpecReviewPanel mount (T10.6).
+- Gate result: `npm run ts` exit 0; fmt/lint clean (0 errors); consolidated P9+P10 batch
+  38 suites / 302 tests green.
+- Notes: 1. T10.6's start handler seeds the draft bundle with problem=hypothesis=body and an
+  empty success-criteria list per the companion's baked literal — the seeded story's
+  "so that" clause is only meaningful once real criteria exist (spec-first, by design). 2. listThoughts contract exposes `todoStatus` as the strict enum so the panel's prop union
+  is wire-safe.

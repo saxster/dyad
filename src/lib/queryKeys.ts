@@ -494,6 +494,8 @@ export const queryKeys = {
       ["governance", "run", runId] as const,
     latestRun: ({ appId }: { appId: number | null }) =>
       ["governance", "latestRun", appId] as const,
+    thoughts: ({ appId }: { appId: number | null }) =>
+      ["governance", "thoughts", appId] as const,
   },
 } as const;
 

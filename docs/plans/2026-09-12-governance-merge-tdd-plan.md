@@ -511,7 +511,7 @@ Reference: `ANVIL` `[INCUB]` (Ideate→Specify→Challenge→Commit→Build; `Co
 - [x] **T10.5 Constellation detection.**
       Seam S1. Files: `src/governance/core/constellations.ts` + test. RED: ≥3 thoughts sharing ≥2 tags with pairwise overlap ≥ threshold → one constellation with dominant tags; below → none.
 
-- [ ] **T10.6 Thought panel (minimal).**
+- [x] **T10.6 Thought panel (minimal).**
       Seam S10. Files: `src/components/governance/ThoughtPanel.tsx` + test — quick capture (⌘⏎), All/Todo/Tags tabs, promote-to-incubation button calling T10.3 via IPC.
       **Phase gate:** ts/lint/fmt; suites; commit.
 

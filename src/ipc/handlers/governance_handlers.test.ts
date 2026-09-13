@@ -1,10 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { DyadErrorKind } from "@/errors/dyad_error";
+import {
+  ArtifactStore,
+  loadIncubationSession,
+} from "@/governance/artifacts/artifact_store";
+import { ThoughtStore } from "@/governance/memory/thought_store";
 import {
   setupHandlerTestHarness,
   type HandlerTestHarness,
@@ -466,5 +471,82 @@ describe("governance run timeline handlers", () => {
       { appId: runless.id },
     );
     expect(none).toBeNull();
+  });
+});
+
+describe("governance incubation handlers", () => {
+  let harness: HandlerTestHarness;
+  let appId: number;
+  let appPath: string;
+
+  beforeEach(async () => {
+    harness = setupHandlerTestHarness();
+    registerGovernanceHandlers();
+    appPath = await mkdtemp(join(tmpdir(), "gov-incubation-"));
+    const app = harness.db
+      .insert(apps)
+      .values({ name: "Incubation App", path: appPath })
+      .returning({ id: apps.id })
+      .get();
+    appId = app.id;
+  });
+
+  afterEach(async () => {
+    harness.dispose();
+    await rm(appPath, { recursive: true, force: true });
+  });
+
+  it("starts an incubation session from a thought body and seeds a draft bundle", async () => {
+    const result = await harness.invokeHandler<{ sessionId: string }>(
+      "governance:start-incubation",
+      { appId, body: "Batch tool calls could halve turn time" },
+    );
+    expect(typeof result.sessionId).toBe("string");
+
+    const session = await loadIncubationSession(appPath, result.sessionId);
+    expect(session.stage).toBe("ideate");
+    expect(session.hypothesis?.problem).toBe(
+      "Batch tool calls could halve turn time",
+    );
+
+    const transcript = await readFile(
+      join(
+        appPath,
+        ".dyad",
+        "incubation",
+        "sessions",
+        result.sessionId,
+        "transcript.md",
+      ),
+      "utf8",
+    );
+    expect(transcript).toContain("Batch tool calls could halve turn time");
+
+    const store = new ArtifactStore(appPath);
+    const bundle = await store.loadBundle();
+    expect(bundle.approvalStatus).toBe("draft");
+    expect(bundle.rawIntent).toBe("Batch tool calls could halve turn time");
+  }, 20_000);
+
+  it("lists recorded thoughts in the wire shape", async () => {
+    const store = new ThoughtStore(harness.db);
+    store.record(appId, { body: "perf idea", tags: ["perf"] });
+    store.record(appId, { body: "dx idea", tags: ["dx"] });
+
+    const result = await harness.invokeHandler<{
+      thoughts: {
+        id: number;
+        body: string;
+        tags: string[];
+        todoStatus: string;
+      }[];
+    }>("governance:list-thoughts", { appId });
+
+    expect(result.thoughts.map((thought) => thought.body)).toEqual([
+      "perf idea",
+      "dx idea",
+    ]);
+    expect(result.thoughts[0].tags).toEqual(["perf"]);
+    expect(result.thoughts[0].todoStatus).toBe("none");
   });
 });

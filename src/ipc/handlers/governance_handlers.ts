@@ -13,6 +13,12 @@ import { extractContracts } from "@/governance/verification/extract_contracts";
 import { runContracts } from "@/governance/verification/contract_runner";
 import { DyadError, DyadErrorKind } from "@/errors/dyad_error";
 import { ArtifactStore } from "@/governance/artifacts/artifact_store";
+import {
+  appendTranscript,
+  saveIncubationSession,
+} from "@/governance/artifacts/artifact_store";
+import { seedSpecBundleFromHypothesis } from "@/governance/core/hypothesis_to_spec";
+import { ThoughtStore } from "@/governance/memory/thought_store";
 import { MemoryStore } from "@/governance/memory/memory_store";
 import {
   nextApprovalStatus,
@@ -410,6 +416,55 @@ export function registerGovernanceHandlers(): void {
         .orderBy(desc(governanceRuns.id))
         .get();
       return run ? loadRunSnapshot(run.id) : null;
+    },
+  );
+
+  createTypedHandler(
+    governanceContracts.startIncubation,
+    async (_event, { appId, body }) => {
+      const { store, appPath } = await getArtifactStoreForApp(appId);
+      const sessionId = crypto.randomUUID();
+      await saveIncubationSession(appPath, {
+        id: sessionId,
+        stage: "ideate",
+        createdAt: new Date().toISOString(),
+        ...(body
+          ? {
+              hypothesis: {
+                problem: body,
+                hypothesis: body,
+                successCriteria: [],
+              },
+            }
+          : {}),
+      });
+      await appendTranscript(appPath, sessionId, body);
+      if (body) {
+        await store.saveBundle(
+          seedSpecBundleFromHypothesis({
+            problem: body,
+            hypothesis: body,
+            successCriteria: [],
+          }),
+        );
+      }
+      return { sessionId };
+    },
+  );
+
+  createTypedHandler(
+    governanceContracts.listThoughts,
+    async (_event, { appId }) => {
+      const thoughts = new ThoughtStore(db).list(appId);
+      console.log("IN_HANDLER", JSON.stringify({ thoughts: [{ id: 0 }] }));
+      return {
+        thoughts: thoughts.map((thought) => ({
+          id: thought.id,
+          body: thought.body,
+          tags: thought.tags,
+          todoStatus: thought.todoStatus,
+        })),
+      };
     },
   );
 }

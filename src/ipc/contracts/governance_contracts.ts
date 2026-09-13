@@ -103,6 +103,27 @@ export const governanceContracts = {
     }),
     output: z.object({ status: z.string() }),
   }),
+
+  startIncubation: defineContract({
+    channel: "governance:start-incubation",
+    input: z.object({ appId: z.number(), body: z.string() }),
+    output: z.object({ sessionId: z.string() }),
+  }),
+
+  listThoughts: defineContract({
+    channel: "governance:list-thoughts",
+    input: z.object({ appId: z.number() }),
+    output: z.object({
+      thoughts: z.array(
+        z.object({
+          id: z.number(),
+          body: z.string(),
+          tags: z.array(z.string()),
+          todoStatus: z.enum(["none", "todo", "done"]),
+        }),
+      ),
+    }),
+  }),
 } as const;
 
 export const governanceClient = createClient(governanceContracts);
