@@ -62,6 +62,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   enableAutoUpdate: true,
   enableGovernance: true,
   governanceRigor: "auto",
+  governanceBudgetUsd: 5,
   releaseChannel: "stable",
   selectedTemplateId: DEFAULT_TEMPLATE_ID,
   selectedThemeId: DEFAULT_THEME_ID,

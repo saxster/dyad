@@ -377,7 +377,7 @@ Reference: `ANVIL/anvil-macOS/Core/Critic/`, `AdversarialCouncilEngine` (3-round
       RED: `it("fires on split council verdicts")`; `it("fires on scope expansion when the diff exceeds N× the planned file count")` (inputs: planned scope {files}, actual diff stats; factor 2 default); `it("does not fire on clean small diffs")`.
       GREEN: `evaluateGateTriggers({ verdict, plannedScope, diffStats })` → `{ triggers: [...], blocking: boolean }`.
 
-- [ ] **T6.6 Budget governor.**
+- [x] **T6.6 Budget governor.**
       Seam S1. Files: test + impl `src/governance/core/budget_governor.ts`.
       RED: `it("accumulates usage and halts at the ceiling")` — `record({input, output, costUsd})` ×n → third record past ceiling throws `DyadError` kind `BudgetExceeded` (add kind per `rules/dyad-errors.md`); `it("computes remaining budget")`.
       GREEN: class; default ceiling from settings (`governanceBudgetUsd`, default $5/run; read `rules/adding-settings.md`).

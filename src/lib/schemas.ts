@@ -554,6 +554,7 @@ const BaseUserSettingsFields = {
   governanceRigor: z
     .enum(["auto", "surgical", "standard", "architectural", "off"])
     .optional(),
+  governanceBudgetUsd: z.number().optional(),
   releaseChannel: ReleaseChannelSchema,
   runtimeMode2: RuntimeMode2Schema.optional(),
   customNodePath: z.string().optional().nullable(),

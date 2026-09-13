@@ -12,6 +12,8 @@ export enum DyadErrorKind {
   Conflict = "conflict",
   UserCancelled = "user_cancelled",
   RateLimited = "rate_limited",
+  /** Governance budget ceiling hit — expected, user-fixable (raise the budget). */
+  BudgetExceeded = "budget_exceeded",
   /** Upstream failures; reported to PostHog by default unless you add finer metadata later. */
   External = "external",
   /** Bugs, invariant violations, unexpected failures — always reported. */
@@ -28,6 +30,7 @@ const TELEMETRY_FILTERED_KINDS: ReadonlySet<DyadErrorKind> = new Set([
   DyadErrorKind.Conflict,
   DyadErrorKind.UserCancelled,
   DyadErrorKind.RateLimited,
+  DyadErrorKind.BudgetExceeded,
 ]);
 
 /**
