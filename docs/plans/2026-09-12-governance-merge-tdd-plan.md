@@ -360,10 +360,10 @@ Reference: `ANVIL/anvil-macOS/Core/Critic/`, `AdversarialCouncilEngine` (3-round
       RED: `it("classifies unanimous / majority / contested verdicts")` — 4 members all-fail → `unanimous-critical`; 3/4 → `majority`; 2/2 → `contested`; includes per-member critiques and a consensus score (fraction agreeing).
       GREEN: `aggregateVerdict(memberFindings)`.
 
-- [ **T6.2 Council engine — members via fake fetch.**
-  Seam S6. Files: test + impl `src/governance/council/council_engine.ts`.
-  RED: `it("runs a 3-round Delphi across configured members and returns an aggregated verdict")` using `setModelClientFetchForTesting` to return scripted JSON critiques per round; assert 3 rounds of fetches per member, cross-critique from round 2 includes round-1 text, output feeds T6.1.
-  GREEN: members = provider/model pairs from settings (`councilMembers` default: architect=claude, pragmatist=openai/gpt, fact-checker=gemini, devils-advocate=xai — degrade gracefully to ≥2 available, else return `unavailable`).
+- [ ] **T6.2 Council engine — members via fake fetch.**
+      Seam S6. Files: test + impl `src/governance/council/council_engine.ts`.
+      RED: `it("runs a 3-round Delphi across configured members and returns an aggregated verdict")` using `setModelClientFetchForTesting` to return scripted JSON critiques per round; assert 3 rounds of fetches per member, cross-critique from round 2 includes round-1 text, output feeds T6.1.
+      GREEN: members = provider/model pairs from settings (`councilMembers` default: architect=claude, pragmatist=openai/gpt, fact-checker=gemini, devils-advocate=xai — degrade gracefully to ≥2 available, else return `unavailable`).
 
 - [ ] **T6.3 Council razors in prompts.**
       Seam S9. Files: `src/prompts/council_prompts.ts` + snapshot test. Each member's system prompt embeds its razor set (YAGNI, Occam, Chesterton's Fence, Inversion, Pre-Mortem distributed per Anvil) and demands JSON `{ findings: [{ severity, claim, evidence }] }`.
@@ -429,9 +429,9 @@ Reference: `ANVIL/anvil-macOS/Core/AgentBackend/` (protocol + registry + `SkillM
       Seam S1-ish (interface + fake). Files: `src/governance/backends/types.ts`, `builtin_backend.ts` + test.
       RED: `it("dispatches via the builtin backend and emits typed events")` — interface `GovernedBackend.dispatch(task): AsyncStream<BackendEvent>`; builtin wraps a fake executor; events `started|output|completed|failed`.
 
-- [ **T8.2 CLI detection.**
-  Seam S3 (process). Files: `src/governance/backends/cli_detect.ts` + test with injected `runCommand`.
-  RED: `it("detects claude/codex binaries and validates semver minimums")` (claude ≥2.0.0, codex ≥0.100.0 — parse `--version` outputs; missing → unavailable; cache 5 min).
+- [ ] **T8.2 CLI detection.**
+      Seam S3 (process). Files: `src/governance/backends/cli_detect.ts` + test with injected `runCommand`.
+      RED: `it("detects claude/codex binaries and validates semver minimums")` (claude ≥2.0.0, codex ≥0.100.0 — parse `--version` outputs; missing → unavailable; cache 5 min).
 
 - [ ] **T8.3 Claude Code backend.**
       Seam S3/S6. Files: `claude_code_backend.ts` + test with fake process.
@@ -465,8 +465,8 @@ Reference: `ANVIL` `TaskGraphOrchestrator`, `BackPressurePolicy` (max 4 runners)
       Seam S1. Files: test + impl `src/governance/core/task_graph.ts`.
       RED: `it("orders nodes topologically and rejects cycles")`; `it("computes ready set as nodes with all deps completed")`.
 
-- [ **T9.2 Backpressure.**
-  Same files. RED: `it("caps concurrent runners at 4 and admits queued nodes on completion")` — simulated executor, assert max observed concurrency and final order respects deps.
+- [ ] **T9.2 Backpressure.**
+      Same files. RED: `it("caps concurrent runners at 4 and admits queued nodes on completion")` — simulated executor, assert max observed concurrency and final order respects deps.
 
 - [ ] **T9.3 Extract worktree isolation utility.**
       Files: new `src/ipc/utils/app_worktree.ts` that re-exports/wraps `createBuildWorktree`/`removeSnapshot` (no behavior change; run_build.ts imports from the new module — mechanical move, existing run_build tests must stay green untouched).
@@ -523,9 +523,9 @@ Reference: `ANVIL` `AnvilCoreSDK`, `RPCServer` (unix socket JSON-RPC), `Headless
       Files: refactor-coating only — ensure `src/governance/**` imports no `electron` (write a lint-style unit test: scan files for `from "electron"` and fail if found in `src/governance/`).
       RED: the scan test fails on first run if any import exists (fix by injection until green).
 
-- [ **T11.2 `dyadctl` CLI entry.**
-  Files: `scripts/dyadctl.mjs` (node, no electron) + test invoking it as a subprocess: commands `run --app <dir> --prompt <str|-> --json` → executes a governed run headlessly (builtin backend, local model config from env) and prints `{ status, verifications, versions }`.
-  RED: subprocess test against a fixture Vite app with one passing contract.
+- [ ] **T11.2 `dyadctl` CLI entry.**
+      Files: `scripts/dyadctl.mjs` (node, no electron) + test invoking it as a subprocess: commands `run --app <dir> --prompt <str|-> --json` → executes a governed run headlessly (builtin backend, local model config from env) and prints `{ status, verifications, versions }`.
+      RED: subprocess test against a fixture Vite app with one passing contract.
 
 - [ ] **T11.3 Unix-socket RPC server.**
       Seam S3. Files: `src/governance/headless/rpc_server.ts` + test — JSON-RPC `initialize|execute|status|shutdown` over `node:http` on a tmp socket path; owner-only perms (stat mode 0o700); 1 MB request cap.

@@ -10,12 +10,6 @@ testSkipIfWindows(
     await po.chatActions.selectChatMode("plan");
 
     // The fake model submits the governed spec via the write_spec tool.
-    po.page.on("console", (msg) => {
-      console.log("RENDERER_CONSOLE:", msg.type(), msg.text().slice(0, 300));
-    });
-    po.page.on("pageerror", (err) => {
-      console.log("RENDERER_PAGEERROR:", String(err).slice(0, 300));
-    });
     await po.sendPrompt("tc=local-agent/governance-write-spec");
 
     // The governed spec review panel surfaces with the pending spec.

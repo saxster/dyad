@@ -80,6 +80,31 @@ describe("governance handlers", () => {
     });
     expect(got).toBeNull();
   });
+
+  it("lists the saved bundle versions oldest first", async () => {
+    await harness.invokeHandler("governance:save-spec-bundle", {
+      appId,
+      bundle,
+    });
+    const mutated = {
+      ...bundle,
+      rawIntent: "Changed intent for the second version",
+    };
+    await harness.invokeHandler("governance:save-spec-bundle", {
+      appId,
+      bundle: mutated,
+    });
+
+    const history = await harness.invokeHandler<
+      { version: number; bundle: SpecBundle }[]
+    >("governance:list-spec-bundle-history", { appId });
+
+    expect(history.map((entry) => entry.version)).toEqual([1, 2]);
+    expect(history[0].bundle.rawIntent).toBe(bundle.rawIntent);
+    expect(history[1].bundle.rawIntent).toBe(
+      "Changed intent for the second version",
+    );
+  });
 });
 
 describe("governance approval handler", () => {

@@ -361,18 +361,17 @@ describe("chat mode (integration)", () => {
       await modeUpdate;
       const result = await stream;
 
-      expect(result.eventsFor("chat:response:error")).toHaveLength(1);
-      expect(result.eventsFor("chat:response:error")[0].payload).toMatchObject({
-        error: expect.stringContaining("FREE_AGENT_QUOTA_EXCEEDED"),
-      });
-      const rejectedMessage = await harness.db.query.messages.findFirst({
+      // Internal fork: Pro is always unlocked, so exhausted Basic Agent
+      // quota no longer rejects the turn — it is accepted under the new mode.
+      expect(result.eventsFor("chat:response:error")).toHaveLength(0);
+      const acceptedMessage = await harness.db.query.messages.findFirst({
         where: (messages, { and, eq }) =>
           and(
             eq(messages.chatId, switchingChatId),
             eq(messages.userInputRequestId, "mode-changed-before-acceptance"),
           ),
       });
-      expect(rejectedMessage).toBeUndefined();
+      expect(acceptedMessage).toBeDefined();
     } finally {
       releaseGate();
       await heldLock;
@@ -427,36 +426,32 @@ describe("chat mode (integration)", () => {
         ],
       });
 
-      const errorEvents = result.eventsFor("chat:response:error");
-      expect(errorEvents).toHaveLength(1);
-      expect(errorEvents[0].payload).toMatchObject({
-        error: expect.stringContaining("FREE_AGENT_QUOTA_EXCEEDED"),
-      });
-      expect(
-        result
-          .eventsFor("chat:response:chunk")
-          .some(({ payload }) =>
-            JSON.stringify(payload).includes("acceptedUserInputRequestId"),
-          ),
-      ).toBe(false);
+      // Internal fork: Pro is always unlocked, so exhausted Basic Agent quota
+      // no longer rejects the turn — it is accepted with its attachment.
+      expect(result.eventsFor("chat:response:error")).toHaveLength(0);
+      expect(result.eventsFor("chat:response:end")).toHaveLength(1);
 
       const persistedMessages = await harness.db.query.messages.findMany({
         where: eq(messages.chatId, quotaChatId),
       });
-      expect(persistedMessages).toHaveLength(FREE_AGENT_QUOTA_LIMIT);
       expect(
-        persistedMessages.some(
-          ({ content }) => content === "must not be accepted",
+        persistedMessages.some(({ content }) =>
+          content.startsWith("must not be accepted"),
         ),
-      ).toBe(false);
+      ).toBe(true);
       expect(
         persistedMessages.some(
           ({ role, content }) => role === "assistant" && content === "",
         ),
       ).toBe(false);
-      expect(await fs.readdir(mediaDir).catch((): string[] => [])).toEqual(
-        mediaFilesBefore,
-      );
+      // The accepted turn persists its chat-context attachment to media.
+      const mediaFilesAfter = await fs
+        .readdir(mediaDir)
+        .catch((): string[] => []);
+      expect(
+        mediaFilesAfter.filter((file) => !mediaFilesBefore.includes(file))
+          .length,
+      ).toBeGreaterThanOrEqual(1);
 
       const replay = await harness.streamChat("quota message 1", {
         chatId: quotaChatId,
@@ -465,10 +460,6 @@ describe("chat mode (integration)", () => {
       });
       expect(replay.eventsFor("chat:response:error")).toHaveLength(0);
       expect(replay.eventsFor("chat:response:end")).toHaveLength(1);
-      const messagesAfterReplay = await harness.db.query.messages.findMany({
-        where: eq(messages.chatId, quotaChatId),
-      });
-      expect(messagesAfterReplay).toHaveLength(FREE_AGENT_QUOTA_LIMIT);
     } finally {
       writeSettings(originalSettings);
     }
@@ -520,24 +511,25 @@ describe("chat mode (integration)", () => {
         }),
       ]);
 
+      // Internal fork: Pro is always unlocked, so both contenders are
+      // accepted — Basic Agent quota no longer arbitrates admission.
       expect(
         results.filter(
-          (result) => result.eventsFor("chat:response:error").length === 1,
+          (result) => result.eventsFor("chat:response:error").length === 0,
         ),
-      ).toHaveLength(1);
+      ).toHaveLength(2);
       expect(
         results.filter(
           (result) => result.eventsFor("chat:response:end").length === 1,
         ),
-      ).toHaveLength(1);
+      ).toHaveLength(2);
 
-      const quotaMessages = await harness.db.query.messages.findMany({
-        where: eq(messages.usingFreeAgentModeQuota, true),
-      });
-      expect(quotaMessages).toHaveLength(FREE_AGENT_QUOTA_LIMIT);
+      const contenderMessages = await harness.db.query.messages.findMany();
       expect(
-        quotaMessages.filter(({ content }) => content.includes("contender")),
-      ).toHaveLength(1);
+        contenderMessages.filter(({ content }) =>
+          content.includes("contender"),
+        ),
+      ).toHaveLength(2);
     } finally {
       await harness.db
         .update(messages)
@@ -609,6 +601,8 @@ describe("chat mode (integration)", () => {
     const latchedChat = await harness.db.query.chats.findFirst({
       where: eq(chats.id, implicitChatId),
     });
-    expect(latchedChat?.chatMode).toBe("build");
+    // Internal fork: Pro is always unlocked, so the Google-only fallback to
+    // Build no longer applies and the implicit mode latches to local-agent.
+    expect(latchedChat?.chatMode).toBe("local-agent");
   }, 60_000);
 });

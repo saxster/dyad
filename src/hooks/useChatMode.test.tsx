@@ -95,7 +95,7 @@ describe("useChatMode without an active chat", () => {
     expect(result.current.selectedMode).toBe("build");
   });
 
-  it("shows Build when the automatic Google-only fallback applies", () => {
+  it("shows Agent for the Google-only fallback in the internal fork (Pro always unlocked)", () => {
     mocks.isQuotaLoading = false;
     mocks.settings = makeSettings({
       selectedChatMode: "local-agent",
@@ -108,7 +108,7 @@ describe("useChatMode without an active chat", () => {
       wrapper: makeWrapper(),
     });
 
-    expect(result.current.selectedMode).toBe("build");
+    expect(result.current.selectedMode).toBe("local-agent");
   });
 });
 

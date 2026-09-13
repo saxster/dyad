@@ -74,7 +74,7 @@ describe("default chat mode selector (integration)", () => {
     expect(selector.textContent).toContain("Build");
   });
 
-  it("shows Agent for the implicit non-Pro baseline", async () => {
+  it("shows Agent for the implicit baseline in the internal fork (Pro always unlocked)", async () => {
     writeSettings({
       enableDyadPro: false,
       providerSettings: {},
@@ -87,13 +87,11 @@ describe("default chat mode selector (integration)", () => {
 
     const selector = await screen.findByTestId("chat-mode-selector");
     await waitFor(() =>
-      expect(selector.getAttribute("aria-label")).toBe(
-        "Chat mode: Basic Agent",
-      ),
+      expect(selector.getAttribute("aria-label")).toBe("Chat mode: Agent"),
     );
   });
 
-  it("shows Build for the implicit Google-only baseline", async () => {
+  it("shows Agent for the implicit Google-only baseline in the internal fork", async () => {
     writeSettings({
       enableDyadPro: false,
       providerSettings: {
@@ -108,11 +106,11 @@ describe("default chat mode selector (integration)", () => {
 
     const selector = await screen.findByTestId("chat-mode-selector");
     await waitFor(() =>
-      expect(selector.getAttribute("aria-label")).toBe("Chat mode: Build"),
+      expect(selector.getAttribute("aria-label")).toBe("Chat mode: Agent"),
     );
   });
 
-  it("honors an explicit Agent default for Google-only users", async () => {
+  it("honors an explicit Agent default for Google-only users in the internal fork", async () => {
     writeSettings({
       enableDyadPro: false,
       providerSettings: {
@@ -127,9 +125,7 @@ describe("default chat mode selector (integration)", () => {
 
     const selector = await screen.findByTestId("chat-mode-selector");
     await waitFor(() =>
-      expect(selector.getAttribute("aria-label")).toBe(
-        "Chat mode: Basic Agent",
-      ),
+      expect(selector.getAttribute("aria-label")).toBe("Chat mode: Agent"),
     );
   });
 

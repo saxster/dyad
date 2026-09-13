@@ -81,3 +81,36 @@
     `DyadMarkdownParser.tsx`; new `DyadWriteSpec` card surfaces the plan
     panel once the bundle is queryable; `PlanPanel` keeps the plan tab open
     (and renders its review UI) while a governed bundle exists.
+
+## 2026-09-13 — Full-program audit (Phases 0–4)
+
+Fixed:
+
+- Two committed debug remnants removed: renderer-console capture in the E2E
+  smoke spec and a `data-debug-bundle` attribute on the DyadWriteSpec card.
+- Missing `governance:list-spec-bundle-history` handler implemented
+  (SpecReviewPanel's diff feature invoked it but no handler was registered);
+  RED→GREEN with a two-version history test.
+- Four malformed task checkboxes in the plan file (`- [ **T6.2/T8.2/T9.2/T11.2`)
+  normalized to `- [ ]`.
+- Branch-caused full-suite failures fixed by updating tests to the fork's
+  intended post-T0.3 behavior (Pro always unlocked; referenced in each):
+  chatMode, useChatMode, useChatModeToggle, ModelPicker (locked-model/unlock
+  UX is unreachable), useFixPreCommitWithAI, local_agent_handler Pro-status
+  validation, chat_mode + default_chat_mode integration (Google-only Build
+  fallback and Basic Agent quota refusal no longer apply).
+
+Audit verification:
+
+- Full unit suite: 7864+ passing; the only deterministic failures are
+  pre-existing on clean `main` (verified in a main worktree: git_utils,
+  run_pre_commit, retry/undo/git_collaboration/voice_to_text/compaction
+  integrations, local_agent_request tool-list). A volatile set of
+  happy-dom integration tests is load-flaky and passes idle on both branches.
+- ts/fmt/lint clean (0 errors; warnings are the documented EARS `then:`
+  no-thenable false-positive class).
+- `npm run build` ✓ and the governed E2E smoke re-passed (26.5s) after the
+  fixes.
+- Note: `governance:get-run` remains an unregistered typed shell per plan
+  (first consumed by Phase 9's RunTimeline); do not call it from the
+  renderer before then.

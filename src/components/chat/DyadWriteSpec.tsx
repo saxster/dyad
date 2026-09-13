@@ -57,10 +57,7 @@ export const DyadWriteSpec: React.FC<DyadWriteSpecProps> = ({ node }) => {
   ].filter(Boolean);
 
   return (
-    <div
-      className="my-4 border rounded-lg bg-primary/5 border-primary/20 px-4 py-3 flex items-center gap-2"
-      data-debug-bundle={bundle ? "loaded" : "none"}
-    >
+    <div className="my-4 border rounded-lg bg-primary/5 border-primary/20 px-4 py-3 flex items-center gap-2">
       <ScrollText className="text-primary" size={18} />
       <span className="font-semibold text-foreground">{parts.join(" — ")}</span>
     </div>

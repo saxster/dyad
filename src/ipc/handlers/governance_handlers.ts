@@ -69,6 +69,14 @@ export function registerGovernanceHandlers(): void {
   );
 
   createTypedHandler(
+    governanceContracts.listSpecBundleHistory,
+    async (_event, { appId }) => {
+      const { store } = await getArtifactStoreForApp(appId);
+      return store.listHistory();
+    },
+  );
+
+  createTypedHandler(
     governanceContracts.getSpecBundle,
     async (_event, { appId }) => {
       const { store } = await getArtifactStoreForApp(appId);

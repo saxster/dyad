@@ -1342,55 +1342,58 @@ describe("handleLocalAgentStream", () => {
   });
 
   describe("Pro status validation", () => {
-    it("should send error when Dyad Pro is not enabled", async () => {
-      // Arrange
+    it("does not gate agent mode behind Dyad Pro in the internal fork", async () => {
+      // Arrange: Pro flag off in settings, but the fork unlocks Pro
+      // unconditionally (see GOVERNANCE_FORK.md), so no paywall error is
+      // sent and the handler proceeds to the chat lookup.
       const { event, getMessagesByChannel } = createFakeEvent();
       mockSettings = buildTestSettings({ enableDyadPro: false });
 
-      // Act
-      await handleLocalAgentStream(
-        event,
-        { chatId: 1, prompt: "test" },
-        new AbortController(),
-        {
-          placeholderMessageId: 10,
-          systemPrompt: "You are helpful",
-          dyadRequestId,
-        },
-      );
-
-      // Assert
-      const errorMessages = getMessagesByChannel("chat:response:error");
-      expect(errorMessages).toHaveLength(1);
-      expect(errorMessages[0].args[0]).toMatchObject({
-        chatId: 1,
-        error: expect.stringContaining("Agent v2 requires Dyad Pro"),
-      });
+      // Act & Assert
+      await expect(
+        handleLocalAgentStream(
+          event,
+          { chatId: 1, prompt: "test" },
+          new AbortController(),
+          {
+            placeholderMessageId: 10,
+            systemPrompt: "You are helpful",
+            dyadRequestId,
+          },
+        ),
+      ).rejects.toThrow(/Chat not found/);
+      expect(
+        getMessagesByChannel("chat:response:error").some((m) =>
+          String((m.args[0] as { error?: string })?.error ?? "").includes(
+            "requires Dyad Pro",
+          ),
+        ),
+      ).toBe(false);
     });
 
-    it("should send error when API key is missing even if Pro is enabled", async () => {
-      // Arrange
+    it("does not require a gateway API key for agent mode in the internal fork", async () => {
+      // Arrange: no API key configured, but the fork unlocks Pro
+      // unconditionally, so the turn proceeds past Pro validation.
       const { event, getMessagesByChannel } = createFakeEvent();
       mockSettings = buildTestSettings({
         enableDyadPro: true,
         hasApiKey: false,
       });
 
-      // Act
-      await handleLocalAgentStream(
-        event,
-        { chatId: 1, prompt: "test" },
-        new AbortController(),
-        {
-          placeholderMessageId: 10,
-          systemPrompt: "You are helpful",
-          dyadRequestId,
-        },
-      );
-
-      // Assert
-      const errorMessages = getMessagesByChannel("chat:response:error");
-      expect(errorMessages).toHaveLength(1);
+      // Act & Assert
+      await expect(
+        handleLocalAgentStream(
+          event,
+          { chatId: 1, prompt: "test" },
+          new AbortController(),
+          {
+            placeholderMessageId: 10,
+            systemPrompt: "You are helpful",
+            dyadRequestId,
+          },
+        ),
+      ).rejects.toThrow(/Chat not found/);
+      expect(getMessagesByChannel("chat:response:error")).toHaveLength(0);
     });
   });
 

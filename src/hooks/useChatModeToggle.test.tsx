@@ -124,7 +124,7 @@ describe("useChatModeToggle", () => {
     expect(result.current.hasManuallySelectedChatMode).toBe(false);
   });
 
-  it("skips Basic Agent when free quota is exhausted", () => {
+  it("cycles into Basic Agent even when free quota is exhausted (internal fork: Pro always unlocked)", () => {
     mocks.selectedMode = "ask";
     mocks.isQuotaExceeded = true;
 
@@ -134,7 +134,7 @@ describe("useChatModeToggle", () => {
 
     act(() => result.current.toggleChatMode());
 
-    expect(mocks.setChatMode).toHaveBeenCalledWith("plan");
+    expect(mocks.setChatMode).toHaveBeenCalledWith("local-agent");
   });
 
   it("cycles away from an already-selected exhausted Basic Agent", () => {

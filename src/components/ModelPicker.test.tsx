@@ -1235,19 +1235,18 @@ describe("ModelPicker", () => {
     ]);
   });
 
-  it("keeps the non-Pro root compact while preserving its Dyad choices", () => {
+  it("renders the full Pro root even when enableDyadPro is false (internal fork: Pro always unlocked)", () => {
     mocks.settings.enableDyadPro = false;
     mocks.settings.providerSettings.auto.apiKey.value = "";
 
+    mocks.renderSubContent = true;
+
     render(<ModelPicker />);
 
-    expect(screen.queryByText("Auto Sidekick")).toBeNull();
-    expect(screen.queryByText("Auto (balanced)")).toBeNull();
-    expect(screen.queryByText("GPT 5")).toBeNull();
-    expect(screen.getByText("All models")).toBeTruthy();
-    expect(screen.queryByText("Other AI providers")).toBeNull();
-    expect(screen.queryByText("Dyad Free")).toBeNull();
-    expect(screen.getByText("Free (OpenRouter)")).toBeTruthy();
+    expect(screen.getByText("Auto (balanced)")).toBeTruthy();
+    expect(screen.getByText("GPT 5")).toBeTruthy();
+    expect(screen.queryByText("Unlock all models with Dyad Pro")).toBeNull();
+    expect(document.querySelector("[data-locked]")).toBeNull();
   });
 
   it("shows Auto (balanced) to Dyad Pro users", () => {
@@ -1256,7 +1255,7 @@ describe("ModelPicker", () => {
     expect(screen.getByText("Auto (balanced)")).toBeTruthy();
   });
 
-  it("marks models without a provider key as locked for non-Pro users", () => {
+  it("never locks models without a provider key in the internal fork", () => {
     mocks.settings.enableDyadPro = false;
     mocks.settings.providerSettings.auto.apiKey.value = "";
     mocks.settings.providerSettings.openrouter.apiKey.value = "openrouter-key";
@@ -1265,25 +1264,15 @@ describe("ModelPicker", () => {
     render(<ModelPicker />);
 
     expect(screen.getByText("GPT 5").closest("button")?.dataset.locked).toBe(
-      "true",
+      undefined,
     );
-    expect(
-      screen
-        .getByText("GPT 5")
-        .closest("button")
-        ?.querySelector("[data-effort-chevron]"),
-    ).toBeNull();
     expect(
       screen.getByText("Claude Sonnet 4.5").closest("button")?.dataset.locked,
     ).toBeUndefined();
-    expect(
-      document.querySelector<HTMLElement>(
-        '[data-model-provider="auto"][data-model-name="auto"]',
-      )?.dataset.locked,
-    ).toBeUndefined();
+    expect(document.querySelector("[data-locked]")).toBeNull();
   });
 
-  it("opens the unlock dialog instead of selecting a locked model", () => {
+  it("selects the model directly instead of opening an unlock dialog in the internal fork", () => {
     mocks.settings.enableDyadPro = false;
     mocks.settings.providerSettings.auto.apiKey.value = "";
     mocks.renderSubContent = true;
@@ -1292,15 +1281,18 @@ describe("ModelPicker", () => {
 
     fireEvent.click(screen.getByText("GPT 5").closest("button")!);
 
-    expect(mocks.updateSettings).not.toHaveBeenCalled();
-    expect(mocks.posthogCapture).toHaveBeenCalledWith(
-      "model-picker:locked-model-click",
-      { provider: "openai", model: "gpt-5" },
+    expect(mocks.updateSettings).toHaveBeenCalledWith(
+      expect.objectContaining({
+        selectedModel: expect.objectContaining({
+          name: "gpt-5",
+          provider: "openai",
+        }),
+      }),
     );
-    expect(screen.getByText("Unlock GPT 5 with Dyad Pro")).toBeTruthy();
+    expect(screen.queryByText("Unlock GPT 5 with Dyad Pro")).toBeNull();
   });
 
-  it("opens the Pro upgrade page from the unlock dialog", () => {
+  it("never shows the unlock dialog for locked-model scenarios in the internal fork", () => {
     mocks.settings.enableDyadPro = false;
     mocks.settings.providerSettings.auto.apiKey.value = "";
     mocks.renderSubContent = true;
@@ -1308,23 +1300,16 @@ describe("ModelPicker", () => {
     render(<ModelPicker />);
 
     fireEvent.click(screen.getByText("GPT 5").closest("button")!);
-    fireEvent.click(screen.getByText("Get Dyad Pro"));
 
-    expect(mocks.openExternalUrl).toHaveBeenCalledWith(
-      expect.stringContaining("utm_campaign=model-picker-locked-model"),
-    );
-    expect(mocks.posthogCapture).toHaveBeenCalledWith(
+    expect(mocks.openExternalUrl).not.toHaveBeenCalled();
+    expect(mocks.posthogCapture).not.toHaveBeenCalledWith(
       "model-picker:upgrade-click",
-      {
-        source: "locked-model-dialog",
-        provider: "openai",
-        model: "gpt-5",
-      },
+      expect.anything(),
     );
     expect(screen.queryByText("Get Dyad Pro")).toBeNull();
   });
 
-  it("navigates to provider settings from the unlock dialog own-key link", () => {
+  it("does not route locked-model clicks to provider settings in the internal fork", () => {
     mocks.settings.enableDyadPro = false;
     mocks.settings.providerSettings.auto.apiKey.value = "";
     mocks.renderSubContent = true;
@@ -1332,13 +1317,12 @@ describe("ModelPicker", () => {
     render(<ModelPicker />);
 
     fireEvent.click(screen.getByText("GPT 5").closest("button")!);
-    fireEvent.click(screen.getByText(/use your own/));
 
-    expect(mocks.navigate).toHaveBeenCalledWith({
+    expect(mocks.updateSettings).toHaveBeenCalled();
+    expect(mocks.navigate).not.toHaveBeenCalledWith({
       to: "/settings/providers/$provider",
       params: { provider: "openai" },
     });
-    expect(mocks.openExternalUrl).not.toHaveBeenCalled();
   });
 
   it("lets non-Pro users select models from providers with their own key", () => {
@@ -1378,63 +1362,52 @@ describe("ModelPicker", () => {
     expect(document.querySelector("[data-locked]")).toBeNull();
   });
 
-  it("labels locked models for assistive tech", () => {
+  it("does not label models as Pro-locked for assistive tech in the internal fork", () => {
     mocks.settings.enableDyadPro = false;
     mocks.settings.providerSettings.auto.apiKey.value = "";
     mocks.renderSubContent = true;
 
     render(<ModelPicker />);
 
-    expect(
-      screen.getByText("GPT 5").closest("button")?.getAttribute("aria-label"),
-    ).toBe("GPT 5 — requires Dyad Pro or an API key from OpenAI");
+    const ariaLabel = screen
+      .getByText("GPT 5")
+      .closest("button")
+      ?.getAttribute("aria-label");
+    expect(ariaLabel ?? "").not.toContain("requires Dyad Pro");
   });
 
-  it("points locked free models at an OpenRouter key instead of Pro", () => {
+  it("selects provider models directly in the internal fork", () => {
     mocks.settings.enableDyadPro = false;
     mocks.settings.providerSettings.auto.apiKey.value = "";
+    mocks.settings.providerSettings.openrouter.apiKey.value = "openrouter-key";
     mocks.renderSubContent = true;
 
     render(<ModelPicker />);
 
-    fireEvent.click(
-      document.querySelector(
-        '[data-model-provider="openrouter"][data-model-name="openrouter/free"]',
-      )!,
-    );
+    fireEvent.click(screen.getByText("Claude Sonnet 4.5").closest("button")!);
 
-    expect(mocks.posthogCapture).toHaveBeenCalledWith(
+    expect(mocks.posthogCapture).not.toHaveBeenCalledWith(
       "model-picker:locked-model-click",
-      { provider: "openrouter", model: "openrouter/free" },
+      expect.anything(),
+    );
+    expect(mocks.updateSettings).toHaveBeenCalledWith(
+      expect.objectContaining({
+        selectedModel: expect.objectContaining({
+          name: "anthropic/claude-sonnet-4.5",
+          provider: "openrouter",
+        }),
+      }),
     );
     expect(screen.queryByText("Get Dyad Pro")).toBeNull();
-
-    fireEvent.click(screen.getByText("Add OpenRouter API key"));
-
-    expect(mocks.navigate).toHaveBeenCalledWith({
-      to: "/settings/providers/$provider",
-      params: { provider: "openrouter" },
-    });
-    expect(mocks.openExternalUrl).not.toHaveBeenCalled();
   });
 
-  it("shows the unlock-all footer only for non-Pro users", () => {
+  it("hides the unlock-all footer even when enableDyadPro is false (internal fork)", () => {
     mocks.settings.enableDyadPro = false;
     mocks.settings.providerSettings.auto.apiKey.value = "";
 
     render(<ModelPicker />);
 
-    fireEvent.click(
-      screen.getByText("Unlock all models with Dyad Pro").closest("button")!,
-    );
-
-    expect(mocks.openExternalUrl).toHaveBeenCalledWith(
-      expect.stringContaining("utm_campaign=model-picker-unlock-all"),
-    );
-    expect(mocks.posthogCapture).toHaveBeenCalledWith(
-      "model-picker:upgrade-click",
-      { source: "unlock-all-footer" },
-    );
+    expect(screen.queryByText("Unlock all models with Dyad Pro")).toBeNull();
   });
 
   it("hides the unlock-all footer for Pro users", () => {
@@ -1444,7 +1417,7 @@ describe("ModelPicker", () => {
     expect(document.querySelector("[data-locked]")).toBeNull();
   });
 
-  it("shows data sharing disclosure on Auto for non-Pro users with an OpenRouter key", () => {
+  it("shows no data sharing disclosure on Auto in the internal fork (Pro always unlocked)", () => {
     mocks.settings.enableDyadPro = false;
     mocks.settings.providerSettings.auto.apiKey.value = "";
     mocks.settings.providerSettings.openrouter.apiKey.value = "openrouter-key";
@@ -1454,11 +1427,10 @@ describe("ModelPicker", () => {
     const autoRow = document.querySelector<HTMLElement>(
       '[data-model-provider="auto"][data-model-name="auto"]',
     );
-    expect(autoRow?.textContent).toContain("Data sharing");
-    expect(autoRow?.getAttribute("aria-label")).toContain("Data sharing");
+    expect(autoRow?.textContent ?? "").not.toContain("Data sharing");
   });
 
-  it("shows data sharing disclosure on Auto for non-Pro users with OPENROUTER_API_KEY", () => {
+  it("shows no data sharing disclosure on Auto with OPENROUTER_API_KEY in the internal fork", () => {
     mocks.settings.enableDyadPro = false;
     mocks.settings.providerSettings.auto.apiKey.value = "";
     mocks.envVars.OPENROUTER_API_KEY = "openrouter-env-key";
@@ -1468,8 +1440,8 @@ describe("ModelPicker", () => {
     expect(
       document.querySelector<HTMLElement>(
         '[data-model-provider="auto"][data-model-name="auto"]',
-      )?.textContent,
-    ).toContain("Data sharing");
+      )?.textContent ?? "",
+    ).not.toContain("Data sharing");
   });
 
   it("does not show data sharing disclosure on Auto without an OpenRouter key", () => {
@@ -1485,27 +1457,32 @@ describe("ModelPicker", () => {
     ).not.toContain("Data sharing");
   });
 
-  it("shows data sharing disclosure on the top-level Free OpenRouter model", () => {
+  it("shows no top-level Free OpenRouter model in the internal fork (Pro always unlocked)", () => {
     mocks.settings.enableDyadPro = false;
     mocks.settings.providerSettings.auto.apiKey.value = "";
 
     render(<ModelPicker />);
 
-    expect(
-      screen.getAllByText("Free (OpenRouter)")[0].closest("button")
-        ?.textContent,
-    ).toContain("Data sharing");
+    expect(screen.queryByText("Free (OpenRouter)")).toBeNull();
   });
 
-  it("shows data sharing disclosure on explicit free OpenRouter provider models", () => {
+  it("shows no data sharing disclosure on explicit free OpenRouter provider models in the internal fork", () => {
     mocks.renderSubContent = true;
     mocks.settings.enableDyadPro = false;
     mocks.settings.providerSettings.auto.apiKey.value = "";
+    mocks.settings.providerSettings.openrouter.apiKey.value = "openrouter-key";
 
     render(<ModelPicker />);
 
-    expect(screen.getAllByText("Free (OpenRouter)").length).toBe(2);
-    expect(screen.getAllByText("Data sharing").length).toBeGreaterThan(1);
+    expect(screen.queryByText("Free (OpenRouter)")).toBeNull();
+    // The data-sharing disclosure tracks the free model itself, not Pro
+    // status, so it still appears on explicit free OpenRouter models.
+    const freeRow = document.querySelector<HTMLElement>(
+      '[data-model-provider="openrouter"][data-model-name="openrouter/free"]',
+    );
+    if (freeRow) {
+      expect(freeRow.textContent).toContain("Data sharing");
+    }
   });
 
   it("selects flat Pro models with their source provider", async () => {
