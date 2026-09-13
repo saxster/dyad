@@ -444,7 +444,7 @@ Reference: `ANVIL/anvil-macOS/Core/AgentBackend/` (protocol + registry + `SkillM
       Seam S2. Files: `skill_materializer.ts` + test.
       RED: `it("writes SKILL.md files to provider skill dirs and cleans up after")` — claude `.claude/skills/<id>/SKILL.md`, codex `.codex/skills/...`; YAML frontmatter escaped (injection attempt with `---` and quotes is neutralized); cleanup via defer-equivalent finally.
 
-- [ ] **T8.6 Session resumption store.**
+- [x] **T8.6 Session resumption store.**
       Seam S2. Files: `session_resumption.ts` + test.
       RED: `it("stores and resumes CLI sessions with TTL")` — save `{backend, sessionId, cwd}`, lookup within 24h, expired → null; file perms 0600 (`mode` assert via stat).
 
