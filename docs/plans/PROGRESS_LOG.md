@@ -159,3 +159,18 @@ Deviations recorded (all consistent with the parent plan's semantics):
 5. Ask-mode fixture note: the fake server's canned governed response never writes files, so
    E2E model-writes-file scenarios need a real `write_file` tool-call fixture turn (the
    fixture continuation across prompts did not serve later turns in this flow).
+
+## 2026-09-13 — P5 gate PASSED (resolution)
+
+- The blocked gate E2E was resolved by re-scoping its final assertion to the persisted verdict
+  evidence, as sanctioned by the owner decision: the same-view DOM assertion is replaced by
+  direct sqlite verification (Node builtin `node:sqlite`, readOnly) of the packaged app's DB —
+  green `spec_verifications` check row for `US-1/AC-1`, `verification_completed` run event, and
+  the `<dyad-status title="Spec verification" state="finished">1 green, 0 red</dyad-status>`
+  suffix on the final assistant message — plus UI assertions for the governed turn itself
+  (no approval-gate refusal, contract target file visible). Result: `1 passed (21.2s)`.
+- `docs/plans/BLOCKED.md` removed (blocker resolved). Renderer follow-up (push a message
+  refresh after governed turn-end verification so the verdict appears without a remount) is
+  deferred to review as a UX polish item; it is not required by the parent plan's T5.7 GREEN.
+- Gate commands all green: `npm run ts`, fmt/lint (0 errors), `npm run build`, targeted suites,
+  and the new `e2e-tests/governance_verification.spec.ts`.
