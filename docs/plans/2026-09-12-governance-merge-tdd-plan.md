@@ -486,7 +486,7 @@ Reference: `ANVIL` `TaskGraphOrchestrator`, `BackPressurePolicy` (max 4 runners)
       Seam S10. Files: `src/components/governance/RunTimeline.tsx` + test — node states (pending/running/green/red/blocked), event stream consumption via IPC subscription.
       RED: `it("renders node states from a run snapshot")`.
 
-- [ ] **T9.8 Cord-cut record.**
+- [x] **T9.8 Cord-cut record.**
       Files: append to `GOVERNANCE_FORK.md`: divergence commit hash, date, last absorbed upstream commit. From here on: no rebase; upstream changes are cherry-picked by need.
       **Phase gate:** `npm run build` + E2E smoke of a 2-node governed run (fake backend acceptable via env flag).
 

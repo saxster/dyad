@@ -95,6 +95,7 @@ describe("isSafeVerificationCommand", () => {
     "git diff",
     "test -f package.json",
     "sh pass.sh",
+    "touch node-a.done",
   ])("allows the safe command %s", (command) => {
     expect(isSafeVerificationCommand(command)).toBe(true);
   });

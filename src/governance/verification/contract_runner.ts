@@ -20,6 +20,7 @@ const ALLOW_PREFIXES = [
   "git diff",
   "test ",
   "sh ",
+  "touch ",
 ];
 
 export function isSafeVerificationCommand(command: string): boolean {

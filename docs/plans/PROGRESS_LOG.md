@@ -249,3 +249,39 @@ DAG marker executor needs, the write_spec-cannot-carry-manifest-tasks gap and it
 on-disk-seeding E2E resolution, `BackendEvent.file`, the node:sqlite E2E assertion pattern,
 the getGovernanceRun typed shell, migration 0054 next). Resume state: HEAD 6d9dbc86, gates
 P5–P8 passed, first unchecked task T9.1.
+
+## 2026-09-14 — Phase 9 gate PASSED (cord-cut)
+
+- T9.1–T9.8 complete and pushed. T9.1 Kahn topo order + ready-set; T9.2 `runWithBackpressure`
+  (cap 4, results in topo order); T9.3 worktree seam `src/ipc/utils/app_worktree.ts`;
+  T9.4 `executeDag` (per-node worktrees, `node_started`/`node_completed`, file-conflict
+  events, results keyed in topo order); T9.5 partial continuation (transitive
+  `node_blocked`, fatal `BudgetExceeded`); T9.6 `manifestToGraph` (title→id deps,
+  unknown-title guard); T9.7 RunTimeline + implemented `governance:get-run` + new
+  `governance:get-latest-run` handlers + query keys + SpecReviewPanel event-stream mount;
+  T9.8 chat-stream DAG fast path behind `DYAD_GOVERNANCE_FAKE_BACKEND=1`, the `touch `
+  safety-gate allow prefix, E2E `e2e-tests/governance_dag.spec.ts`, and the GOVERNANCE_FORK.md
+  cord-cut record (divergence `aa7e30f0`; last upstream `d6cebfc7`; rebasing forbidden).
+- Gate result: `npm run ts` exit 0; fmt/lint clean (0 errors, documented EARS warnings);
+  governance batch 33 suites / 280 tests green (incl. both integration suites and the
+  92-test chat stream suite); `npm run build` ✓ (unsandboxed); E2E `governance_dag.spec.ts`
+  ✓ 1 passed (24.3s) — page text `DAG completed: node-a, node-b` plus node:sqlite proof of
+  `dag_node_*` events and the completed marker message.
+- Deviations / notes (all plan-sanctioned):
+  1. T9.3: `createBuildWorktree`/`removeSnapshot` remain in run_build.ts behind a thin
+     `app_worktree.ts` re-export (delta fallback: moving the exports would force an
+     app_worktree ↔ run_build import cycle through the private snapshot subsystem).
+  2. T9.4: node prompts are baked as `touch <id>.done` inside executeDag (the injected
+     backendFor cannot carry prompts; T9.8's marker executor depends on this).
+  3. T9.8 placement: the fast path runs after the assistant placeholder is created and
+     before stream dispatch. The delta's literal anchor (immediately after the approval
+     gate) is unsatisfiable — the placeholder does not exist there — and "update the
+     placeholder assistant message content" requires this ordering.
+  4. `run_build.spec.ts`: 3 git-subprocess tests timed out on the first two runs this
+     session (governance/main AND a clean `main` worktree, sandboxed and unsandboxed),
+     then passed 27/27 isolated. Machine load-flaky, same class as the documented
+     happy-dom set; verified not a branch regression via the main worktree.
+  5. The DAG fast path returns `req.chatId` before the governed turn-end verification
+     hook, so DAG turns don't run spec verification — consistent with the fast path
+     replacing (not augmenting) the LLM stream; verification of DAG runs is deferred
+     until the orchestrator integration work asks for it.

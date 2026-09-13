@@ -27,3 +27,31 @@ publish, relicense, or redistribute the merged product.
 Recorded at the Phase 9 cord-cut (see
 `docs/plans/2026-09-12-governance-merge-tdd-plan.md` §1.5); before that point
 this branch tracks upstream via periodic rebases.
+
+## Cord-cut (Phase 9)
+
+- **Divergence commit:** `aa7e30f018fde8502e0c15a26cab6231d437430f`
+  (`gov(T9.7): RunTimeline UI` + the T9.8 DAG wiring)
+- **Date:** 2026-09-14
+- **Last absorbed upstream commit:** `d6cebfc77ab62b017b3d1202f662813e37d8b53d`
+  (`main`)
+- **Rule from here on:** rebasing onto upstream is **forbidden**. Upstream
+  changes are cherry-picked by need only, and each pick is re-verified
+  against the governance suites (`src/governance/**`, the governed chat
+  integration suites, and the `.dyad/bin` verification scripts).
+
+Why the cord was cut: Phase 9 rewrote the run lifecycle beyond additive
+hooks — governed turns can now bypass the LLM stream entirely (DAG fast
+path), the run-events table carries orchestration lifecycle (`dag_*`), and
+the verification safety gate gained an executor-oriented allow prefix
+(`touch `). These cross the seams upstream also owns (chat stream
+terminal payload, message persistence), so rebase-based tracking would
+rewrite this logic on every upstream movement.
+
+Notable deliberate deltas vs upstream at the cut (baked during P5–P8):
+governance routing/approval/gates wired into `chat_stream_handlers`,
+`spec_verifications.kind` column (migration 0051), `council_verdicts`
+(0052), `memory_items` (0053), per-tool consent default for `record_memory`,
+and the red-first verification spine. Env flags introduced by this fork:
+`DYAD_GOVERNANCE_FAKE_BACKEND=1` (DAG fast path over an approved bundle's
+task manifest), `GOVERNANCE_FORK=1` (strip-down gates, Phase 12).

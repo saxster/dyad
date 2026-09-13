@@ -389,6 +389,75 @@ describe("governance approval gate (integration)", () => {
     });
     expect(JSON.parse(runEvents[2].payloadJson)).toEqual({ exitCode: 0 });
   }, 60_000);
+
+  it("executes an approved bundle's task manifest through the DAG orchestrator when the fake-backend flag is set", async () => {
+    process.env.DYAD_GOVERNANCE_FAKE_BACKEND = "1";
+    try {
+      const store = new ArtifactStore(harness.appDir);
+      const bundle = parseSpecBundle(readFileSync(FIXTURE_PATH, "utf8"));
+      const approved = await store.saveBundle({
+        ...bundle,
+        approvalStatus: "approved",
+        approvedAt: new Date().toISOString(),
+        manifest: {
+          ...bundle.manifest,
+          tasks: [
+            {
+              id: "node-a",
+              title: "Node A",
+              description: "",
+              estimatedPhase: "",
+              status: "",
+              requiresTestFirst: false,
+              dependsOnTitles: [],
+              linkedComponentIds: [],
+              linkedCriterionIds: [],
+              linkedStoryIds: [],
+            },
+            {
+              id: "node-b",
+              title: "Node B",
+              description: "",
+              estimatedPhase: "",
+              status: "",
+              requiresTestFirst: false,
+              dependsOnTitles: ["Node A"],
+              linkedComponentIds: [],
+              linkedCriterionIds: [],
+              linkedStoryIds: [],
+            },
+          ],
+        },
+      });
+      harness.db
+        .insert(specBundles)
+        .values({
+          appId: harness.appId,
+          chatId: harness.chatId,
+          artifactVersion: approved.version,
+          approvalStatus: "approved",
+        })
+        .run();
+
+      const turn = await harness.streamChat(GOVERNED_PROMPT);
+
+      expect(turn.eventsFor("chat:response:error")).toHaveLength(0);
+      expect(turn.event("chat:response:end")).toBeTruthy();
+
+      const messages = await harness.db.query.messages.findMany();
+      const lastAssistant = messages
+        .filter((m) => m.role === "assistant")
+        .at(-1);
+      expect(lastAssistant?.content).toBe("DAG completed: node-a, node-b");
+
+      const runEvents = harness.db.select().from(governanceRunEvents).all();
+      const types = runEvents.map((event) => event.type);
+      expect(types).toContain("dag_node_started");
+      expect(types).toContain("dag_node_completed");
+    } finally {
+      delete process.env.DYAD_GOVERNANCE_FAKE_BACKEND;
+    }
+  }, 60_000);
 });
 
 function makeFakeBackend(name: string): GovernedBackend {

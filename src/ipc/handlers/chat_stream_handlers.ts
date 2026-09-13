@@ -30,6 +30,12 @@ import {
 import { MemoryStore } from "../../governance/memory/memory_store";
 import { buildMemoryContextMessage } from "../../governance/memory/build_memory_context";
 import { rankMemories } from "../../governance/core/memory_ranking";
+import { executeDag } from "../../governance/runs/dag_orchestrator";
+import { manifestToGraph } from "../../governance/core/manifest_to_graph";
+import { createBuiltinBackend } from "../../governance/backends/builtin_backend";
+import { runContracts } from "../../governance/verification/contract_runner";
+import { ArtifactStore } from "../../governance/artifacts/artifact_store";
+import { tmpdir } from "node:os";
 import { apps, chats, messages } from "../../db/schema";
 import { scheduleChatSearchIndexing } from "../../pro/main/ipc/handlers/local_agent/chat_search_indexer";
 import { and, desc, eq, isNull } from "drizzle-orm";
@@ -1164,6 +1170,9 @@ export function registerChatStreamHandlers() {
       // decision as a governance run. Best-effort: a recording failure must
       // never block the turn itself.
       let governanceDecision: RouteTurnDecision | null = null;
+      // Hoisted so the DAG fast path can record orchestration events on this
+      // turn's run even when routing logging itself failed.
+      let governanceRunId: number | null = null;
       try {
         governanceDecision = routeTurn({
           prompt: req.prompt,
@@ -1182,6 +1191,7 @@ export function registerChatStreamHandlers() {
           })
           .returning({ id: governanceRuns.id })
           .get();
+        governanceRunId = governanceRun.id;
         await appendRunEvent(governanceRun.id, "turn_routed", {
           mode: governanceDecision.mode,
           tier: governanceDecision.tier,
@@ -1846,6 +1856,72 @@ ${componentSnippet}
         streamId: req.streamId,
         messages: updatedChat.messages.map(toRendererMessage),
       } satisfies ChatStreamChunkPayload);
+
+      // DAG fast path (private fork, P9): with the fake-backend flag set, an
+      // approved bundle's task manifest runs through the DAG orchestrator
+      // instead of the LLM stream. Each node's marker prompt executes in its
+      // own throwaway worktree, and `touch` is allow-listed in the safety
+      // gate for exactly this executor.
+      if (
+        process.env.DYAD_GOVERNANCE_FAKE_BACKEND === "1" &&
+        governanceDecision?.lane === "governed"
+      ) {
+        const pendingEvents: Promise<unknown>[] = [];
+        try {
+          const store = new ArtifactStore(getDyadAppPath(updatedChat.app.path));
+          const bundle = await store.loadBundle();
+          if (bundle.manifest.tasks.length > 0) {
+            const dagResult = await executeDag(manifestToGraph(bundle), {
+              backendFor: () =>
+                createBuiltinBackend(async (task) => {
+                  const [result] = await runContracts(
+                    [{ key: task.id, command: task.prompt }],
+                    { cwd: task.cwd, timeoutMs: 30_000 },
+                  );
+                  return {
+                    exitCode:
+                      result.status === "green" ? 0 : (result.exitCode ?? 1),
+                    output: result.outputTail,
+                  };
+                }),
+              worktreeFor: async () =>
+                await fs.promises.mkdtemp(path.join(tmpdir(), "dyad-dag-")),
+              onEvent: (type, payload) => {
+                if (governanceRunId !== null) {
+                  pendingEvents.push(
+                    appendRunEvent(governanceRunId, `dag_${type}`, payload),
+                  );
+                }
+              },
+            });
+            await Promise.all(pendingEvents);
+            const content = `DAG completed: ${dagResult.completed.join(", ")}`;
+            db.update(messages)
+              .set({ content })
+              .where(eq(messages.id, placeholderAssistantMessage.id))
+              .run();
+            safeSend(event.sender, "chat:response:chunk", {
+              chatId: req.chatId,
+              invocationRef: req.invocationRef,
+              streamId: req.streamId,
+              streamingMessageId: placeholderAssistantMessage.id,
+              streamingPatch: { offset: 0, content },
+            } satisfies ChatStreamChunkPayload);
+            safeSend(event.sender, "chat:response:end", {
+              chatId: req.chatId,
+              invocationRef: req.invocationRef,
+              streamId: req.streamId,
+              updatedFiles: false,
+            } satisfies ChatStreamEndPayload);
+            return req.chatId;
+          }
+        } catch (error) {
+          log.warn(
+            "governance DAG fast path failed; falling back to the model stream",
+            error,
+          );
+        }
+      }
 
       let fullResponse = "";
       let maxTokensUsed: number | undefined;
