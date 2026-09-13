@@ -30,6 +30,8 @@ import {
   diffVersionIdForState,
   isRestoreRecoveryFlowState,
 } from "@/version_preview/state";
+import { VerificationBadge } from "@/components/governance/VerificationBadge";
+import { governanceClient } from "@/ipc/contracts/governance_contracts";
 
 function HighlightMatch({
   text,
@@ -125,6 +127,19 @@ function VersionRow({
     isCheckingOutVersion ||
     isResolvingPreviewBranch ||
     isAnyVersionMutationPending;
+  const appId = useAtomValue(selectedAppIdAtom);
+  const { data: verification } = useQuery({
+    queryKey: queryKeys.governance.versionVerification({
+      appId,
+      commitHash: version.oid,
+    }),
+    queryFn: () =>
+      governanceClient.getVersionVerification({
+        appId: appId!,
+        commitHash: version.oid,
+      }),
+    enabled: !!appId,
+  });
   const trimmedSearchQuery = searchQuery.trim();
   const displayMessage =
     version.message &&
@@ -264,6 +279,11 @@ function VersionRow({
               </span>
             </div>
           </div>
+          {verification && (
+            <div className="mt-1">
+              <VerificationBadge {...verification} />
+            </div>
+          )}
           <div className="mt-1 flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
               {displayMessage && (

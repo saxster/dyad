@@ -483,6 +483,13 @@ export const queryKeys = {
       ["governance", "specBundle", appId] as const,
     specHistory: ({ appId }: { appId: number | null }) =>
       ["governance", "specHistory", appId] as const,
+    versionVerification: ({
+      appId,
+      commitHash,
+    }: {
+      appId: number | null;
+      commitHash: string;
+    }) => ["governance", "versionVerification", appId, commitHash] as const,
   },
 } as const;
 

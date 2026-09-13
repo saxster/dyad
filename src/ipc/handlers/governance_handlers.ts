@@ -7,6 +7,7 @@ import {
   messages,
   specBundles,
   specVerifications,
+  versions,
 } from "@/db/schema";
 import { extractContracts } from "@/governance/verification/extract_contracts";
 import { runContracts } from "@/governance/verification/contract_runner";
@@ -287,6 +288,41 @@ export function registerGovernanceHandlers(): void {
       return {
         approvalStatus: stamped.approvalStatus,
         approvedAt: stamped.approvedAt ?? null,
+      };
+    },
+  );
+
+  createTypedHandler(
+    governanceContracts.getVersionVerification,
+    async (_event, { appId, commitHash }) => {
+      const versionRow = await db
+        .select({ id: versions.id })
+        .from(versions)
+        .where(
+          and(eq(versions.appId, appId), eq(versions.commitHash, commitHash)),
+        )
+        .orderBy(desc(versions.id))
+        .get();
+      if (!versionRow) {
+        return null;
+      }
+      const checkRows = await db
+        .select()
+        .from(specVerifications)
+        .where(eq(specVerifications.versionId, versionRow.id))
+        .all();
+      if (checkRows.length === 0) {
+        return null;
+      }
+      const green = checkRows.filter((row) => row.status === "green").length;
+      const red = checkRows.filter((row) => row.status === "red").length;
+      return {
+        verified: red === 0 && green > 0,
+        green,
+        red,
+        failing: checkRows
+          .filter((row) => row.status === "red")
+          .map((row) => row.criterionKey),
       };
     },
   );

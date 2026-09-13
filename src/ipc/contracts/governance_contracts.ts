@@ -73,6 +73,18 @@ export const governanceContracts = {
       ),
     }),
   }),
+  getVersionVerification: defineContract({
+    channel: "governance:get-version-verification",
+    input: z.object({ appId: z.number(), commitHash: z.string() }),
+    output: z
+      .object({
+        verified: z.boolean(),
+        green: z.number(),
+        red: z.number(),
+        failing: z.array(z.string()),
+      })
+      .nullable(),
+  }),
 } as const;
 
 export const governanceClient = createClient(governanceContracts);

@@ -330,4 +330,31 @@ describe("verified checkpoints", () => {
     expect(result.verified).toBe(false);
     expect(result.criteriaCount).toBe(0);
   });
+
+  it("returns the stamped verification summary for a version", async () => {
+    insertVerification("US-1/AC-1", "check", "green");
+    insertVerification("US-1/AC-2", "check", "red");
+    harness.db
+      .update(specVerifications)
+      .set({ versionId })
+      .where(eq(specVerifications.runId, runId))
+      .run();
+
+    const summary = await harness.invokeHandler<{
+      verified: boolean;
+      green: number;
+      red: number;
+      failing: string[];
+    }>("governance:get-version-verification", {
+      appId,
+      commitHash: "abc1234567890",
+    });
+
+    expect(summary).toEqual({
+      verified: false,
+      green: 1,
+      red: 1,
+      failing: ["US-1/AC-2"],
+    });
+  });
 });

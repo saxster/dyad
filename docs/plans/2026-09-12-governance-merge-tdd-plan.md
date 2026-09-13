@@ -341,7 +341,7 @@ Reference: `ANVIL/anvil-macOS/Core/Verification/` (`VerificationContractRunner.s
       RED: `it("runs verifications automatically at governed turn end and includes the verdict in the final message")` (fake-LLM harness where the model writes a file satisfying the fixture contract).
       GREEN: coordinator call in turn finalization (additive, governed lane only).
 
-- [ ] **T5.8 VerificationBadge (UI).**
+- [x] **T5.8 VerificationBadge (UI).**
       Seam S10. Files: `src/components/governance/VerificationBadge.tsx` + test. Renders on the version/checkpoint row (find version list component): green check + criteria counts, or red with failing criterion keys.
       RED: `it("renders verified state and failing state from props")`.
 
