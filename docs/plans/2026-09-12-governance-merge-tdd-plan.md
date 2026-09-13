@@ -425,7 +425,7 @@ Reference: `ANVIL` `ProjectMemoryStore` (3 tiers, 5 categories: auditHistory, us
 
 Reference: `ANVIL/anvil-macOS/Core/AgentBackend/` (protocol + registry + `SkillMaterializer` + `SessionResumptionStore`). Read `rules/windows-spawn.md` before any spawn code.
 
-- [ ] **T8.1 Backend protocol + builtin passthrough.**
+- [x] **T8.1 Backend protocol + builtin passthrough.**
       Seam S1-ish (interface + fake). Files: `src/governance/backends/types.ts`, `builtin_backend.ts` + test.
       RED: `it("dispatches via the builtin backend and emits typed events")` — interface `GovernedBackend.dispatch(task): AsyncStream<BackendEvent>`; builtin wraps a fake executor; events `started|output|completed|failed`.
 
