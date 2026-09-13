@@ -372,7 +372,7 @@ Reference: `ANVIL/anvil-macOS/Core/Critic/`, `AdversarialCouncilEngine` (3-round
       Seam S5. Files: tool + test; `defaultConsent: "ask"` (expensive), `modifiesState: false`.
       RED: `it("convenes the council on a question and persists the verdict")` (fake fetch; verdict row in `council_verdicts` table — add table in this task following T2.1 pattern + migration).
 
-- [ ] **T6.5 Heuristic gate triggers v1.**
+- [x] **T6.5 Heuristic gate triggers v1.**
       Seam S1. Files: test + impl `src/governance/core/heuristic_gate.ts`.
       RED: `it("fires on split council verdicts")`; `it("fires on scope expansion when the diff exceeds N× the planned file count")` (inputs: planned scope {files}, actual diff stats; factor 2 default); `it("does not fire on clean small diffs")`.
       GREEN: `evaluateGateTriggers({ verdict, plannedScope, diffStats })` → `{ triggers: [...], blocking: boolean }`.
