@@ -1,5 +1,33 @@
 import { spawn } from "node:child_process";
 import type { VerificationContract } from "./extract_contracts";
+import { DyadError, DyadErrorKind } from "@/errors/dyad_error";
+
+// Checked first; a denied command is refused even if it matches an allow prefix.
+const DENY_PATTERNS = [
+  /\brm\s+-rf\b/i,
+  /\bsudo\b/i,
+  /\bgit\s+push\b/i,
+  /\bchmod\s+777\b/i,
+  /\|\s*(sh|bash)\s*$/i,
+  /\brm\s[^;]*;/i,
+];
+
+const ALLOW_PREFIXES = [
+  "npm test",
+  "npm run",
+  "node ",
+  "npx tsc",
+  "git diff",
+  "test ",
+  "sh ",
+];
+
+export function isSafeVerificationCommand(command: string): boolean {
+  if (DENY_PATTERNS.some((pattern) => pattern.test(command))) {
+    return false;
+  }
+  return ALLOW_PREFIXES.some((prefix) => command.startsWith(prefix));
+}
 
 export type ContractStatus = "green" | "red" | "timeout";
 
@@ -82,6 +110,12 @@ export async function runContracts(
   const results: ContractResult[] = [];
 
   for (const contract of contracts) {
+    if (!isSafeVerificationCommand(contract.command)) {
+      throw new DyadError(
+        `verification contract "${contract.key}" refused unsafe command: ${contract.command}`,
+        DyadErrorKind.Validation,
+      );
+    }
     const startedAt = Date.now();
     const outcome = await runCommand(contract.command, cwd, timeoutMs);
     const durationMs = Date.now() - startedAt;

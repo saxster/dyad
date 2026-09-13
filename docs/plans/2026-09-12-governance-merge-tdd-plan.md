@@ -318,7 +318,7 @@ Reference: `ANVIL/anvil-macOS/Core/Verification/` (`VerificationContractRunner.s
       RED: `it("runs a passing command to green and a failing one to red with output tail")` using real `sh` (`exit 0` / `exit 3` scripts in a tmp dir); `it("enforces a timeout")` with a `sleep 5` script and 100 ms limit → status `timeout`.
       GREEN: `runContracts(contracts, { cwd, timeoutMs, runCommand })` returning per-contract `{ status, exitCode?, outputTail, durationMs }`; tail capped at 4,000 chars.
 
-- [ ] **T5.3 ContractRunner — safety screen.**
+- [x] **T5.3 ContractRunner — safety screen.**
       Same files. RED: `it("refuses commands outside the safe-command policy")` — deny list mirrors Warden patterns (`rm -rf`, `sudo`, `git push`, `curl | sh`, `chmod 777`, anything with `;` after `rm`), allow npm test/node/npx tsc/git diff.
       GREEN: `isSafeVerificationCommand(cmd)` checked before exec; DyadError kind `Validation` otherwise.
 
