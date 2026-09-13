@@ -365,7 +365,7 @@ Reference: `ANVIL/anvil-macOS/Core/Critic/`, `AdversarialCouncilEngine` (3-round
       RED: `it("runs a 3-round Delphi across configured members and returns an aggregated verdict")` using `setModelClientFetchForTesting` to return scripted JSON critiques per round; assert 3 rounds of fetches per member, cross-critique from round 2 includes round-1 text, output feeds T6.1.
       GREEN: members = provider/model pairs from settings (`councilMembers` default: architect=claude, pragmatist=openai/gpt, fact-checker=gemini, devils-advocate=xai — degrade gracefully to ≥2 available, else return `unavailable`).
 
-- [ ] **T6.3 Council razors in prompts.**
+- [x] **T6.3 Council razors in prompts.**
       Seam S9. Files: `src/prompts/council_prompts.ts` + snapshot test. Each member's system prompt embeds its razor set (YAGNI, Occam, Chesterton's Fence, Inversion, Pre-Mortem distributed per Anvil) and demands JSON `{ findings: [{ severity, claim, evidence }] }`.
 
 - [ **T6.4 `convene_council` tool.**
