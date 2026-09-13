@@ -448,7 +448,7 @@ Reference: `ANVIL/anvil-macOS/Core/AgentBackend/` (protocol + registry + `SkillM
       Seam S2. Files: `session_resumption.ts` + test.
       RED: `it("stores and resumes CLI sessions with TTL")` — save `{backend, sessionId, cwd}`, lookup within 24h, expired → null; file perms 0600 (`mode` assert via stat).
 
-- [ ] **T8.7 Registry + tier routing.**
+- [x] **T8.7 Registry + tier routing.**
       Seam S1. Files: `registry.ts` + test.
       RED: `it("routes architectural tier to builtin always")`; `it("routes standard/surgical to the highest-scoring available backend")` (scores injected); fallback on unavailable.
 
