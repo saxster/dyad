@@ -472,7 +472,7 @@ Reference: `ANVIL` `TaskGraphOrchestrator`, `BackPressurePolicy` (max 4 runners)
       Files: new `src/ipc/utils/app_worktree.ts` that re-exports/wraps `createBuildWorktree`/`removeSnapshot` (no behavior change; run_build.ts imports from the new module — mechanical move, existing run_build tests must stay green untouched).
       Verify: `npm test -- src/pro/main/ipc/handlers/local_agent/tools/run_build*` (existing suite name — grep it) unchanged-green.
 
-- [ ] **T9.4 Orchestrator happy path.**
+- [x] **T9.4 Orchestrator happy path.**
       Seam S1+fake. Files: `src/governance/runs/dag_orchestrator.ts` + test with injected backend + injected worktree factory.
       RED: `it("executes a 3-node DAG with isolation, merges results, and emits run events")` — each node gets a worktree (factory returns tmp dirs), results merged in topo order, conflict → surfaced.
 

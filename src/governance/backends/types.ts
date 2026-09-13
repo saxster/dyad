@@ -5,6 +5,8 @@ export interface BackendEvent {
   text?: string;
   exitCode?: number;
   error?: string;
+  /** File reported by a completed event; lets the DAG orchestrator detect cross-node conflicts. */
+  file?: string;
 }
 
 export interface BackendTask {
