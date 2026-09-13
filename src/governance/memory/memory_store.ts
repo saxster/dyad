@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, lt } from "drizzle-orm";
 import { db as globalDb } from "@/db";
 import { memoryItems } from "@/db/schema";
 import { DyadError, DyadErrorKind } from "@/errors/dyad_error";
@@ -26,6 +26,15 @@ export interface RecordMemoryInput {
 const clampImportance = (importance: number): number =>
   Math.min(10, Math.max(0, Math.round(importance)));
 
+const SWEEP_INTERVAL_MS = 60_000;
+let lastSweepAtMs = 0;
+let memoryClock = (): Date => new Date();
+
+/** Test-only clock injection for the sweep throttle (no timers). */
+export function setMemoryClockForTesting(clock: () => Date): void {
+  memoryClock = clock;
+}
+
 /**
  * Project-memory CRUD over the `memory_items` table. The default db is the
  * global proxy; tests inject an in-memory drizzle instance.
@@ -46,6 +55,7 @@ export class MemoryStore {
         DyadErrorKind.Validation,
       );
     }
+    this.maybeSweep();
     const inserted = this.db
       .insert(memoryItems)
       .values({
@@ -70,6 +80,7 @@ export class MemoryStore {
   }
 
   listForApp(appId: number) {
+    this.maybeSweep();
     return this.db
       .select()
       .from(memoryItems)
@@ -95,5 +106,24 @@ export class MemoryStore {
       .set({ lastAccessedAt: new Date() })
       .where(eq(memoryItems.id, id))
       .run();
+  }
+
+  /** Deletes expired medium-tier items. Long-tier memories never expire. */
+  sweepExpired(now: Date): void {
+    this.db
+      .delete(memoryItems)
+      .where(
+        and(eq(memoryItems.tier, "medium"), lt(memoryItems.expiresAt, now)),
+      )
+      .run();
+  }
+
+  private maybeSweep(): void {
+    const now = memoryClock();
+    if (now.getTime() - lastSweepAtMs < SWEEP_INTERVAL_MS) {
+      return;
+    }
+    lastSweepAtMs = now.getTime();
+    this.sweepExpired(now);
   }
 }

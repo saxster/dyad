@@ -399,7 +399,7 @@ Reference: `ANVIL` `ProjectMemoryStore` (3 tiers, 5 categories: auditHistory, us
       Seam S8. Files: `memory_items` table (add migration), `src/governance/memory/memory_store.ts` + test.
       RED: insert/read/update-importance/delete round-trip; fields: `id, appId, namespace, tier("short"|"medium"|"long"), category, body, importance(0–10), expiresAt?, createdAt, updatedAt, lastAccessedAt`.
 
-- [ ] **T7.2 Eviction sweep.**
+- [x] **T7.2 Eviction sweep.**
       Same files. RED: `it("evicts expired medium-tier items and never evicts long-tier")` — seed with past/future expiry, run `sweepExpired()`, assert.
       GREEN: delete-where query; call site scheduled lazily on store access (no timer in tests).
 

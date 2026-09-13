@@ -115,4 +115,45 @@ describe("MemoryStore", () => {
       "architecturalDecision",
     ]);
   });
+
+  it("evicts expired medium-tier items and never evicts long-tier", () => {
+    const db: TestDb = createInMemoryTestDb();
+    const store = new MemoryStore(db);
+    const app = db
+      .insert(apps)
+      .values({ name: "Memory App 4", path: "/tmp/gov-memory-4" })
+      .returning({ id: apps.id })
+      .get();
+
+    const hourAgo = new Date(Date.now() - 3_600_000);
+    const hourAhead = new Date(Date.now() + 3_600_000);
+    const mediumExpired = store.record(app.id, {
+      tier: "medium",
+      category: "errorPattern",
+      body: "expired medium",
+      expiresAt: hourAgo,
+    });
+    const mediumFuture = store.record(app.id, {
+      tier: "medium",
+      category: "errorPattern",
+      body: "future medium",
+      expiresAt: hourAhead,
+    });
+    const longExpired = store.record(app.id, {
+      tier: "long",
+      category: "architecturalDecision",
+      body: "expired long",
+      expiresAt: hourAgo,
+    });
+
+    store.sweepExpired(new Date());
+
+    const survivingIds = store.listForApp(app.id).map((row) => row.id);
+    expect(survivingIds).toHaveLength(2);
+    expect(survivingIds).toContain(mediumFuture);
+    expect(survivingIds).toContain(longExpired);
+    expect(survivingIds).not.toContain(mediumExpired);
+
+    db.$client.close();
+  });
 });
