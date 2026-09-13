@@ -59,6 +59,7 @@ import {
 import { planningQuestionnaireTool } from "./tools/planning_questionnaire";
 import { writeSpecTool } from "./tools/write_spec";
 import { runVerificationsTool } from "./tools/run_verifications";
+import { conveneCouncilTool } from "./tools/convene_council";
 import { writePlanTool } from "./tools/write_plan";
 import { exitPlanTool } from "./tools/exit_plan";
 import { readGuideTool } from "./tools/read_guide";
@@ -196,6 +197,7 @@ export const TOOL_DEFINITIONS: readonly ToolDefinition[] = [
   exitPlanTool,
   writeSpecTool,
   runVerificationsTool,
+  conveneCouncilTool,
   // App blueprint tools
   writeAppBlueprintTool,
 ];
@@ -766,6 +768,10 @@ export function shouldIncludeTool(
   }
   // Governance fork: run_verifications exists only when governance is on.
   if (tool.name === "run_verifications" && options.enableGovernance !== true) {
+    return false;
+  }
+  // Governance fork: convene_council exists only when governance is on.
+  if (tool.name === "convene_council" && options.enableGovernance !== true) {
     return false;
   }
   // In read-only mode, skip tools that modify state.

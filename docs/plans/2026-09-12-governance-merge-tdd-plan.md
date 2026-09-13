@@ -368,9 +368,9 @@ Reference: `ANVIL/anvil-macOS/Core/Critic/`, `AdversarialCouncilEngine` (3-round
 - [x] **T6.3 Council razors in prompts.**
       Seam S9. Files: `src/prompts/council_prompts.ts` + snapshot test. Each member's system prompt embeds its razor set (YAGNI, Occam, Chesterton's Fence, Inversion, Pre-Mortem distributed per Anvil) and demands JSON `{ findings: [{ severity, claim, evidence }] }`.
 
-- [ **T6.4 `convene_council` tool.**
-  Seam S5. Files: tool + test; `defaultConsent: "ask"` (expensive), `modifiesState: false`.
-  RED: `it("convenes the council on a question and persists the verdict")` (fake fetch; verdict row in `council_verdicts` table — add table in this task following T2.1 pattern + migration).
+- [x] **T6.4 `convene_council` tool.**
+      Seam S5. Files: tool + test; `defaultConsent: "ask"` (expensive), `modifiesState: false`.
+      RED: `it("convenes the council on a question and persists the verdict")` (fake fetch; verdict row in `council_verdicts` table — add table in this task following T2.1 pattern + migration).
 
 - [ ] **T6.5 Heuristic gate triggers v1.**
       Seam S1. Files: test + impl `src/governance/core/heuristic_gate.ts`.

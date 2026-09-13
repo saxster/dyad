@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   index,
   integer,
+  real,
   sqliteTable,
   text,
   unique,
@@ -934,6 +935,20 @@ export const specVerifications = sqliteTable("spec_verifications", {
   exitCode: integer("exit_code"),
   outputTail: text("output_tail"),
   at: integer("at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+export const councilVerdicts = sqliteTable("council_verdicts", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  appId: integer("app_id")
+    .notNull()
+    .references(() => apps.id, { onDelete: "cascade" }),
+  question: text("question").notNull(),
+  classification: text("classification").notNull(),
+  consensusScore: real("consensus_score").notNull(),
+  verdictJson: text("verdict_json").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),
 });
