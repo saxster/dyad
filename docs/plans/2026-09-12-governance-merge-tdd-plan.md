@@ -437,7 +437,7 @@ Reference: `ANVIL/anvil-macOS/Core/AgentBackend/` (protocol + registry + `SkillM
       Seam S3/S6. Files: `claude_code_backend.ts` + test with fake process.
       RED: `it("spawns claude with stream-json prompt and parses event stream")` — assert argv (`--print`, `--output-format`, `stream-json`, `--resume` when session id exists), env sanitization, event translation; timeout enforcement test.
 
-- [ ] **T8.4 Codex backend.**
+- [x] **T8.4 Codex backend.**
       Same pattern. RED: JSON-RPC over stdio framing parse/serialize round-trip; dispatch → events.
 
 - [ ] **T8.5 Skill materializer.**
