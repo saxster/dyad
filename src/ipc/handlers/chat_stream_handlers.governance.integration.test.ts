@@ -20,6 +20,10 @@ import { registerGovernanceHandlers } from "./governance_handlers";
 import { ArtifactStore } from "@/governance/artifacts/artifact_store";
 import { parseSpecBundle } from "@/governance/core/spec_bundle_schemas";
 import { MemoryStore } from "@/governance/memory/memory_store";
+import { dispatchGovernedTask } from "@/governance/backends/dispatch";
+import { createRegistry } from "@/governance/backends/registry";
+import type { GovernedBackend } from "@/governance/backends/types";
+import { asc, eq } from "drizzle-orm";
 import {
   governanceRuns,
   memoryItems,
@@ -330,4 +334,67 @@ describe("governance approval gate (integration)", () => {
     const events = harness.db.select().from(governanceRunEvents).all();
     expect(events.some((e) => e.type === "memory_recorded")).toBe(true);
   }, 60_000);
+
+  it("executes a governed task through an external backend and records lifecycle events", async () => {
+    const run = harness.db
+      .insert(governanceRuns)
+      .values({
+        appId: harness.appId,
+        chatId: harness.chatId,
+        lane: "governed",
+        tier: "standard",
+        status: "running",
+      })
+      .returning({ id: governanceRuns.id })
+      .get();
+
+    const fakeExternal: GovernedBackend = {
+      async *dispatch(task) {
+        yield { type: "started", node: task.id };
+        yield { type: "output", text: "doing the thing" };
+        yield { type: "completed", exitCode: 0 };
+      },
+    };
+    const registry = createRegistry({
+      builtin: makeFakeBackend("builtin"),
+      external: [{ backend: fakeExternal, score: 10 }],
+    });
+
+    const events = await dispatchGovernedTask(
+      harness.appId,
+      { id: "t1", prompt: "true", cwd: harness.appDir },
+      registry,
+    );
+
+    expect(events.map((event) => event.type)).toEqual([
+      "started",
+      "output",
+      "completed",
+    ]);
+
+    const runEvents = harness.db
+      .select()
+      .from(governanceRunEvents)
+      .where(eq(governanceRunEvents.runId, run.id))
+      .orderBy(asc(governanceRunEvents.seq))
+      .all();
+    expect(runEvents.map((e) => e.type)).toEqual([
+      "backend_started",
+      "backend_output",
+      "backend_completed",
+    ]);
+    expect(JSON.parse(runEvents[0].payloadJson)).toEqual({ node: "t1" });
+    expect(JSON.parse(runEvents[1].payloadJson)).toEqual({
+      text: "doing the thing",
+    });
+    expect(JSON.parse(runEvents[2].payloadJson)).toEqual({ exitCode: 0 });
+  }, 60_000);
 });
+
+function makeFakeBackend(name: string): GovernedBackend {
+  return {
+    async *dispatch() {
+      yield { type: "started", node: name };
+    },
+  };
+}

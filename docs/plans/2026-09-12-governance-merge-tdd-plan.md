@@ -452,7 +452,7 @@ Reference: `ANVIL/anvil-macOS/Core/AgentBackend/` (protocol + registry + `SkillM
       Seam S1. Files: `registry.ts` + test.
       RED: `it("routes architectural tier to builtin always")`; `it("routes standard/surgical to the highest-scoring available backend")` (scores injected); fallback on unavailable.
 
-- [ ] **T8.8 Dispatch integration.**
+- [x] **T8.8 Dispatch integration.**
       Seam S4. Files: extend integration tests with a fake external backend injected through the registry.
       RED: `it("executes a governed task through an external backend and records lifecycle events")` (hooks into run events T2.5).
       **Phase gate:** ts/lint/fmt; suites; commit.
