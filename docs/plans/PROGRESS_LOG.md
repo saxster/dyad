@@ -123,3 +123,39 @@ values, wiring anchors, verify commands, and commit messages. It also bakes in t
 learnings (env preflight, preload relative-import rule, getDyadAppPath, buildOptions wiring
 point, settings snapshot regen, Appendix A pre-existing-failure list, owner checkpoints for
 T12.1–T12.3). Future sessions: read the HANDOFF, then this companion plan.
+
+## 2026-09-13 — Phase 5 (T5.1–T5.9 complete; gate E2E partially blocked)
+
+- T5.1–T5.9 all implemented RED→GREEN and committed (`gov(T5.1)`…`gov(T5.9)`), including the
+  `spec_verifications.kind` migration (drizzle 0051), the ContractRunner with process-group
+  timeout kill, the safe-command screen, the red-first probe, the `run_verifications` tool with
+  governance gating in `shouldIncludeTool`, `stampVerification`, the governed turn-end
+  verification hook, the VerificationBadge + `governance:get-version-verification` IPC, and the
+  `.dyad/bin` verification script export.
+- Gate status: `npm run ts` exit 0; fmt/lint clean (0 errors; warnings are the documented
+  EARS/then-key class); all 10 targeted P5 suites green (50 tests); `npm run build` ✓
+  (TMPDIR must be exported for the Forge temp dir, not just the electron cache).
+- Packaged-app verification (via direct sqlite inspection of the e2e userData): governed
+  agent-mode turn → hook runs → contract green → `spec_verifications` check row + `verification_completed`
+  event + `<dyad-status title="Spec verification" state="finished">1 green, 0 red</dyad-status>`
+  appended to the final assistant message content. The backend/DB side of the gate is proven.
+- Gate E2E blocked on its final same-view assertion (see `docs/plans/BLOCKED.md`): the open
+  chat does not re-render the appended status; needs a renderer message-refresh mechanism
+  outside T5.7's file scope.
+
+Deviations recorded (all consistent with the parent plan's semantics):
+
+1. T5.5 wiring adds `run_verifications` to the read-only (ask) toolset, which required adding
+   it to the exact-tool-list assertion in `local_agent_ask.integration.test.ts` (repo rules
+   prescribe this maintenance; test updated and green).
+2. `<dyad-status>` state uses `finished` (valid per `rules/chat-message-indicators.md`), not
+   the companion plan's literal `complete`.
+3. The `governance:get-version-verification` contract keys on `{ appId, commitHash }` instead
+   of the companion's `versionId` because `Version` rows in the VersionPane carry only the git
+   oid; the handler resolves the version row, then reads check rows — same output shape.
+4. T5.7/T5.9 tests seed the app state (`file1.txt`) themselves: the fake model's canned
+   governed-turn response arrives as text and cannot execute a real write in either the vitest
+   or the packaged-E2E harness. All companion-specified assertions kept verbatim.
+5. Ask-mode fixture note: the fake server's canned governed response never writes files, so
+   E2E model-writes-file scenarios need a real `write_file` tool-call fixture turn (the
+   fixture continuation across prompts did not serve later turns in this flow).
