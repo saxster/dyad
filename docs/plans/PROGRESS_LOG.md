@@ -197,3 +197,23 @@ Deviations recorded (all consistent with the parent plan's semantics):
   return the provider configs (empty list → "Configuration not found for provider").
 - Deviation: T6.4's checkbox in the parent plan was malformed (`- [ **T6.4` — no `]`/no x);
   normalized to `- [x]` in this task's commit.
+
+## 2026-09-13 — Phase 7 gate PASSED
+
+- T7.1–T7.6 complete and pushed: `memory_items` table (migration 0053) + `MemoryStore` CRUD with
+  tier/category validation and 0–10 importance clamping (T7.1), 60s-throttled `sweepExpired`
+  eviction of expired medium-tier items (T7.2), `rankMemories` recency-weighted ranking
+  (T7.3), `record_memory` tool with governance gating (T7.4), governed-turn memory injection
+  `buildMemoryContextMessage` (T7.5), and the post-run `errorPattern` learning hook with a
+  `memory_recorded` run event (T7.6).
+- Gate result: `npm run ts` exit 0; fmt/lint clean (0 errors); 9 suites / 130 tests green
+  including both integration suites.
+- Deviations (per plan or harness reality):
+  1. T7.4 consent: `defaultConsent` is per-TOOL, so `record_memory` uses `"ask"` instead of the
+     parent plan's per-category consent (plan-directed deviation).
+  2. T7.3 literal: the companion plan's hand-worked `0.462` for A {importance 9, age 30d} is an
+     arithmetic slip — the parent plan's formula yields 0.4614 → `0.461`; formula wins.
+  3. T7.5 assertion: the harness dump masks all system messages
+     (`server_dump.ts maskSystemMessages`), so the integration test asserts the memory marker
+     against the raw recorded request via `ServerDumpResult.dumpPath` instead of the masked
+     `text` projection.
