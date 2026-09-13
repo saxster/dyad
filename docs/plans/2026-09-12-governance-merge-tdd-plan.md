@@ -501,7 +501,7 @@ Reference: `ANVIL` `[INCUB]` (Ideate→Specify→Challenge→Commit→Build; `Co
 - [x] **T10.2 Incubation session persistence.**
       Seam S2. Files: extend artifact store — `.dyad/incubation/sessions/<id>/session.json` + `transcript.md`; RED: save/load round-trip + append-transcript.
 
-- [ ] **T10.3 Hypothesis → spec bridge.**
+- [x] **T10.3 Hypothesis → spec bridge.**
       Seam S1. Files: test + impl `src/governance/core/hypothesis_to_spec.ts`.
       RED: `it("seeds a spec bundle draft from a committed hypothesis")` — rawIntent from problem, first story from successCriteria (criteria become EARS criteria without contracts), status draft.
 
