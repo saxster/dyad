@@ -288,6 +288,10 @@ export const nonRemoteDispatchOrEnqueueInventory = [
   owned("ipc/services/main_app_runtime_output.ts", 1),
   owned("ipc/utils/debug_fetch.ts", 1),
   owned("ipc/utils/fallback_ai_model.ts", 1),
+  // Governance backend dispatch: in-process backends handing tasks to
+  // their executors — no distributed-machine transport involved.
+  owned("governance/backends/dispatch.ts", 1),
+  owned("governance/runs/dag_orchestrator.ts", 1),
   // A Web ReadableStream controller: enqueue pushes response body chunks and
   // is unrelated to distributed-machine transport.
   owned("pro/main/ipc/handlers/local_agent/tools/engine_fetch.ts", 1),

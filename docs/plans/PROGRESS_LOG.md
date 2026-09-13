@@ -305,3 +305,35 @@ P5–P8 passed, first unchecked task T9.1.
   empty success-criteria list per the companion's baked literal — the seeded story's
   "so that" clause is only meaningful once real criteria exist (spec-first, by design). 2. listThoughts contract exposes `todoStatus` as the strict enum so the panel's prop union
   is wire-safe.
+
+## 2026-09-14 — Phase 11 gate PASSED
+
+- T11.1–T11.6 complete and committed: the no-electron guard over `src/governance/**`
+  (non-vacuity proven by a temporary `import "electron";` in lane_screen.ts — first regex
+  missed bare imports and was widened, T11.1); `scripts/dyadctl.mjs` headless runner with
+  inline contract flatten, `sh -c` execution, 30s timeouts and JSON reporting (T11.2); the
+  JSON-RPC unix-socket server with owner-only socket perms, 1 MiB cap, -32600/-32601/-32700
+  errors and stale-socket cleanup (T11.3); the governance engine state machine
+  (idle→running→completed|failed) wired as RPC handlers (T11.4); and issue intake +
+  autopilot (issue → branch → governed run → commit → push → draft PR, with a
+  verification-report PR body on run failure, T11.5/T11.6 — one module, one commit).
+- Gate result: full `npm test` 734/752 files green (npm exit 0); `npm run build` ✓;
+  dyadctl smoke ✓ (`{"status":"completed","verifications":[],"versions":[]}` on a
+  bundle-less fixture app); ts/fmt/lint clean.
+- Full-suite failures, all verified NOT branch regressions:
+  1. Appendix A verbatim (fail identically on clean main, re-verified 2026-09-14):
+     git_utils.test, run_pre_commit.spec, retry/undo/git_collaboration/voice_to_text
+     integrations, compaction_handler.integration, local_agent_request.integration.
+  2. Git-subprocess timeout class (timeouts even alone on THIS machine AND on a clean
+     main worktree — machine load sensitivity of real-git suites): git_changed_files
+     (8/8, main too), review_target (12/18, main too), agent_git_utils (12 failed, main
+     too), run_build (the T9.3-known trio; 27/27 alone when idle earlier this session).
+  3. happy-dom load-flaky class: pause_queue, context_compaction, github_actions,
+     app_details_actions, settings_actions (pause_queue passed on isolated re-run).
+  4. boundary_inventory "pins raw dispatch/enqueue access": FAILED alone on the branch
+     while passing on clean main — but that is the guard test working as designed: the
+     P8/P9 governance dispatch call sites (governance/backends/dispatch.ts,
+     governance/runs/dag_orchestrator.ts) were new unregistered non-remote dispatch
+     access. Pinned in nonRemoteDispatchOrEnqueueInventory; suite now 23/23.
+- Deviation note: T11.5+T11.6 ship as one commit (same module per the companion's file
+  list); T11.1's checkbox was ticked retroactively in that commit (missed in its own).
