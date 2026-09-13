@@ -523,7 +523,7 @@ Reference: `ANVIL` `AnvilCoreSDK`, `RPCServer` (unix socket JSON-RPC), `Headless
       Files: refactor-coating only — ensure `src/governance/**` imports no `electron` (write a lint-style unit test: scan files for `from "electron"` and fail if found in `src/governance/`).
       RED: the scan test fails on first run if any import exists (fix by injection until green).
 
-- [ ] **T11.2 `dyadctl` CLI entry.**
+- [x] **T11.2 `dyadctl` CLI entry.**
       Files: `scripts/dyadctl.mjs` (node, no electron) + test invoking it as a subprocess: commands `run --app <dir> --prompt <str|-> --json` → executes a governed run headlessly (builtin backend, local model config from env) and prints `{ status, verifications, versions }`.
       RED: subprocess test against a fixture Vite app with one passing contract.
 
