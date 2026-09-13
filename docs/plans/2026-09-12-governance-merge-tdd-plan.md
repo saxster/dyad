@@ -313,7 +313,7 @@ Reference: `ANVIL/anvil-macOS/Core/Verification/` (`VerificationContractRunner.s
       RED: `it("flattens a bundle into criterion-keyed contracts")` → `[{ key: "US-1/AC-2", command: "npm test -- foo" }]`, skipping criteria without contracts (returned separately as `manual`).
       GREEN: pure flatten.
 
-- [ ] **T5.2 ContractRunner — execution.**
+- [x] **T5.2 ContractRunner — execution.**
       Seam S3. Files: test + impl `src/governance/verification/contract_runner.ts`.
       RED: `it("runs a passing command to green and a failing one to red with output tail")` using real `sh` (`exit 0` / `exit 3` scripts in a tmp dir); `it("enforces a timeout")` with a `sleep 5` script and 100 ms limit → status `timeout`.
       GREEN: `runContracts(contracts, { cwd, timeoutMs, runCommand })` returning per-contract `{ status, exitCode?, outputTail, durationMs }`; tail capped at 4,000 chars.
