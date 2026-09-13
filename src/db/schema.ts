@@ -972,3 +972,30 @@ export const memoryItems = sqliteTable("memory_items", {
     .default(sql`(unixepoch())`),
   lastAccessedAt: integer("last_accessed_at", { mode: "timestamp" }),
 });
+
+export const thoughts = sqliteTable("thoughts", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  appId: integer("app_id")
+    .notNull()
+    .references(() => apps.id, { onDelete: "cascade" }),
+  body: text("body").notNull(),
+  tags: text("tags").notNull().default("[]"),
+  todoStatus: text("todo_status").notNull().default("none"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+export const thoughtLinks = sqliteTable("thought_links", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  fromThoughtId: integer("from_thought_id")
+    .notNull()
+    .references(() => thoughts.id, { onDelete: "cascade" }),
+  toThoughtId: integer("to_thought_id")
+    .notNull()
+    .references(() => thoughts.id, { onDelete: "cascade" }),
+  kind: text("kind").notNull().default("related"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});

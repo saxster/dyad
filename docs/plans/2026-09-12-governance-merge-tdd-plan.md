@@ -505,7 +505,7 @@ Reference: `ANVIL` `[INCUB]` (Ideate→Specify→Challenge→Commit→Build; `Co
       Seam S1. Files: test + impl `src/governance/core/hypothesis_to_spec.ts`.
       RED: `it("seeds a spec bundle draft from a committed hypothesis")` — rawIntent from problem, first story from successCriteria (criteria become EARS criteria without contracts), status draft.
 
-- [ ] **T10.4 Thoughts table + capture.**
+- [x] **T10.4 Thoughts table + capture.**
       Seam S8. Files: `thoughts`, `thought_edges` tables + `src/governance/memory/thought_store.ts` + test — CRUD, tag filter, todo status transitions (`promoteToTodo`, `markDone`).
 
 - [ ] **T10.5 Constellation detection.**
