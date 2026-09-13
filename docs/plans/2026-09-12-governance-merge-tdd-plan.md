@@ -530,7 +530,7 @@ Reference: `ANVIL` `AnvilCoreSDK`, `RPCServer` (unix socket JSON-RPC), `Headless
 - [x] **T11.3 Unix-socket RPC server.**
       Seam S3. Files: `src/governance/headless/rpc_server.ts` + test — JSON-RPC `initialize|execute|status|shutdown` over `node:http` on a tmp socket path; owner-only perms (stat mode 0o700); 1 MB request cap.
 
-- [ ] **T11.4 RPC ↔ engine wiring.**
+- [x] **T11.4 RPC ↔ engine wiring.**
       Same files. RED: `execute` starts a governed run (injected fakes) and `status` reports run state transitions.
 
 - [ ] **T11.5 GitHub issue intake.**

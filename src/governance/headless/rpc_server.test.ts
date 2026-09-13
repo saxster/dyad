@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  createGovernanceEngine,
   createGovernanceRpcServer,
   type GovernanceRpcServer,
 } from "./rpc_server";
@@ -148,5 +149,38 @@ describe.skipIf(!isPosix)("governance RPC server", () => {
       expect(server?.listening).toBe(false);
     });
     server = undefined;
+  });
+});
+
+describe("governance engine", () => {
+  it("moves idle → running → completed around a run", async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((resolveGate) => {
+      release = resolveGate;
+    });
+    const engine = createGovernanceEngine({ startRun: () => gate });
+    expect(engine.status().state).toBe("idle");
+
+    const reply = await engine.execute();
+    expect(reply).toEqual({ runId: "run-1" });
+    expect(engine.status()).toMatchObject({ state: "running", runId: "run-1" });
+
+    release();
+    await vi.waitFor(() => {
+      expect(engine.status().state).toBe("completed");
+    });
+  });
+
+  it("reports failed with the error message when the run rejects", async () => {
+    const engine = createGovernanceEngine({
+      startRun: () => Promise.reject(new Error("boom")),
+    });
+
+    const reply = await engine.execute();
+    expect(reply.runId).toBe("run-1");
+
+    await vi.waitFor(() => {
+      expect(engine.status()).toMatchObject({ state: "failed", error: "boom" });
+    });
   });
 });

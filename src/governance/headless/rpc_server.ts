@@ -169,3 +169,54 @@ export async function createGovernanceRpcServer({
 }
 
 export { DyadError, DyadErrorKind };
+
+export type EngineState = "idle" | "running" | "completed" | "failed";
+
+export interface EngineStatus {
+  state: EngineState;
+  runId: string | null;
+  error: string | null;
+}
+
+/**
+ * Headless engine state machine: idle → running → completed | failed per
+ * run. `execute` assigns the runId and flips to running immediately while
+ * `startRun` continues in the background; `status` always reflects the
+ * current transition, so an RPC client can poll it between the two. The
+ * returned methods double as RPC handlers (execute/status/shutdown).
+ */
+export function createGovernanceEngine({
+  startRun,
+}: {
+  startRun: (runId: string) => Promise<void>;
+}) {
+  let runCounter = 0;
+  let status: EngineStatus = { state: "idle", runId: null, error: null };
+
+  return {
+    status(): EngineStatus {
+      return { ...status };
+    },
+    async execute(): Promise<{ runId: string }> {
+      const runId = `run-${++runCounter}`;
+      status = { state: "running", runId, error: null };
+      void startRun(runId).then(
+        () => {
+          status = { state: "completed", runId, error: null };
+        },
+        (error: unknown) => {
+          status = {
+            state: "failed",
+            runId,
+            error: error instanceof Error ? error.message : String(error),
+          };
+        },
+      );
+      return { runId };
+    },
+    shutdown(): void {
+      // The RPC server owns connection teardown; the engine has no
+      // in-flight resources of its own to release in v1.
+    },
+  };
+}
