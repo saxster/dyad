@@ -355,7 +355,7 @@ Reference: `ANVIL/anvil-macOS/Core/Verification/` (`VerificationContractRunner.s
 
 Reference: `ANVIL/anvil-macOS/Core/Critic/`, `AdversarialCouncilEngine` (3-round Delphi, razors), `ConfidenceHeuristicGate` (5 triggers), `TokenBudgetGovernor`.
 
-- [ ] **T6.1 Verdict aggregation.**
+- [x] **T6.1 Verdict aggregation.**
       Seam S1. Files: test + impl `src/governance/core/verdict_aggregator.ts`.
       RED: `it("classifies unanimous / majority / contested verdicts")` — 4 members all-fail → `unanimous-critical`; 3/4 → `majority`; 2/2 → `contested`; includes per-member critiques and a consensus score (fraction agreeing).
       GREEN: `aggregateVerdict(memberFindings)`.
