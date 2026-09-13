@@ -1,6 +1,12 @@
 import { and, desc, eq, isNotNull } from "drizzle-orm";
 import { db } from "@/db";
-import { apps, governanceRunEvents, messages, specBundles } from "@/db/schema";
+import {
+  apps,
+  governanceRunEvents,
+  messages,
+  specBundles,
+  specVerifications,
+} from "@/db/schema";
 import { DyadError, DyadErrorKind } from "@/errors/dyad_error";
 import { ArtifactStore } from "@/governance/artifacts/artifact_store";
 import {
@@ -46,6 +52,59 @@ export async function appendRunEvent(
     .returning({ id: governanceRunEvents.id })
     .get();
   return { id: inserted.id, runId, seq, type };
+}
+
+export interface VerificationStamp {
+  verified: boolean;
+  criteriaCount: number;
+  green: number;
+  red: number;
+}
+
+export function stampVerification(
+  runId: number,
+  versionId: number,
+): VerificationStamp {
+  const probeRows = db
+    .select()
+    .from(specVerifications)
+    .where(
+      and(
+        eq(specVerifications.runId, runId),
+        eq(specVerifications.kind, "probe"),
+      ),
+    )
+    .all();
+  const redFirstKeys = probeRows
+    .filter((row) => row.status === "probe-red")
+    .map((row) => row.criterionKey);
+
+  const checkRows = db
+    .select()
+    .from(specVerifications)
+    .where(
+      and(
+        eq(specVerifications.runId, runId),
+        eq(specVerifications.kind, "check"),
+      ),
+    )
+    .all();
+  const checkByKey = new Map(checkRows.map((row) => [row.criterionKey, row]));
+
+  const verified =
+    redFirstKeys.length > 0 &&
+    redFirstKeys.every((key) => checkByKey.get(key)?.status === "green");
+
+  for (const row of checkRows) {
+    db.update(specVerifications)
+      .set({ versionId })
+      .where(eq(specVerifications.id, row.id))
+      .run();
+  }
+
+  const green = checkRows.filter((row) => row.status === "green").length;
+  const red = checkRows.filter((row) => row.status === "red").length;
+  return { verified, criteriaCount: checkRows.length, green, red };
 }
 
 export function registerGovernanceHandlers(): void {

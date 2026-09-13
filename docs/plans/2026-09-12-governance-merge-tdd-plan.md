@@ -331,7 +331,7 @@ Reference: `ANVIL/anvil-macOS/Core/Verification/` (`VerificationContractRunner.s
       RED: `it("runs all contracts for the approved bundle and reports per-criterion status")` — fake ctx with tmp app containing a passing + failing script; result string lists `US-1/AC-1 green`, `US-1/AC-2 red (exit 1)` + output tail; emits `<dyad-status title="Spec verification">` via `ctx.onXmlComplete` (read `rules/chat-message-indicators.md`).
       GREEN: tool wired into `TOOL_DEFINITIONS` (plan + agent modes, governance on).
 
-- [ ] **T5.6 Verified checkpoints.**
+- [x] **T5.6 Verified checkpoints.**
       Seam S4/S8. Files: extend `governance_handlers.test.ts`, impl.
       RED: `it("stamps a version as verified only when every red-first contract is green")` — after a governed run ends, coordinator links `spec_verifications` rows to the turn's version (`versions.id`) and returns `{ verified: true, criteriaCount, green, red }`; one red → `verified: false` and the turn-end summary must say so.
       GREEN: `stampVerification(runId, versionId)`.

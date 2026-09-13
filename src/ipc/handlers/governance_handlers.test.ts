@@ -8,7 +8,13 @@ import {
   setupHandlerTestHarness,
   type HandlerTestHarness,
 } from "@/testing/handler_test_harness";
-import { apps, governanceRunEvents, governanceRuns } from "@/db/schema";
+import {
+  apps,
+  governanceRunEvents,
+  governanceRuns,
+  specVerifications,
+  versions,
+} from "@/db/schema";
 import {
   parseSpecBundle,
   type SpecBundle,
@@ -16,6 +22,7 @@ import {
 import {
   appendRunEvent,
   registerGovernanceHandlers,
+  stampVerification,
 } from "./governance_handlers";
 
 const FIXTURE_PATH = resolve(
@@ -223,5 +230,104 @@ describe("governance run event log", () => {
     expect(events.map((e) => e.type)).toEqual(["run_started", "verdict"]);
     expect(JSON.parse(events[0].payloadJson)).toEqual({ lane: "governed" });
     expect(JSON.parse(events[1].payloadJson)).toEqual({ green: 2, red: 1 });
+  });
+});
+
+describe("verified checkpoints", () => {
+  let harness: HandlerTestHarness;
+  let appId: number;
+  let runId: number;
+  let versionId: number;
+
+  beforeEach(() => {
+    harness = setupHandlerTestHarness();
+    registerGovernanceHandlers();
+    const app = harness.db
+      .insert(apps)
+      .values({ name: "Checkpoint App", path: "/tmp/gov-checkpoints" })
+      .returning({ id: apps.id })
+      .get();
+    appId = app.id;
+    const run = harness.db
+      .insert(governanceRuns)
+      .values({
+        appId,
+        chatId: null,
+        lane: "governed",
+        tier: "standard",
+        status: "running",
+      })
+      .returning({ id: governanceRuns.id })
+      .get();
+    runId = run.id;
+    const version = harness.db
+      .insert(versions)
+      .values({ appId, commitHash: "abc1234567890" })
+      .returning({ id: versions.id })
+      .get();
+    versionId = version.id;
+  });
+
+  afterEach(() => harness.dispose());
+
+  function insertVerification(
+    criterionKey: string,
+    kind: "probe" | "check",
+    status: string,
+  ): void {
+    harness.db
+      .insert(specVerifications)
+      .values({ runId, criterionKey, kind, status })
+      .run();
+  }
+
+  function checkRows() {
+    return harness.db
+      .select()
+      .from(specVerifications)
+      .where(eq(specVerifications.runId, runId))
+      .all()
+      .filter((row) => row.kind === "check");
+  }
+
+  it("stamps a version as verified only when every red-first contract is green", () => {
+    insertVerification("US-1/AC-1", "probe", "probe-red");
+    insertVerification("US-1/AC-2", "probe", "probe-green");
+    insertVerification("US-1/AC-1", "check", "green");
+    insertVerification("US-1/AC-2", "check", "green");
+
+    const result = stampVerification(runId, versionId);
+
+    expect(result).toEqual({
+      verified: true,
+      criteriaCount: 2,
+      green: 2,
+      red: 0,
+    });
+    for (const row of checkRows()) {
+      expect(row.versionId).toBe(versionId);
+    }
+  });
+
+  it("returns verified false when one red-first contract is red", () => {
+    insertVerification("US-1/AC-1", "probe", "probe-red");
+    insertVerification("US-1/AC-2", "probe", "probe-green");
+    insertVerification("US-1/AC-1", "check", "red");
+    insertVerification("US-1/AC-2", "check", "green");
+
+    const result = stampVerification(runId, versionId);
+
+    expect(result.verified).toBe(false);
+    expect(result.red).toBe(1);
+  });
+
+  it("returns verified false when no red-first criteria exist", () => {
+    insertVerification("US-1/AC-1", "probe", "probe-green");
+    insertVerification("US-1/AC-2", "probe", "probe-green");
+
+    const result = stampVerification(runId, versionId);
+
+    expect(result.verified).toBe(false);
+    expect(result.criteriaCount).toBe(0);
   });
 });
