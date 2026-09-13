@@ -519,7 +519,7 @@ Reference: `ANVIL` `[INCUB]` (Ideate→Specify→Challenge→Commit→Build; `Co
 
 Reference: `ANVIL` `AnvilCoreSDK`, `RPCServer` (unix socket JSON-RPC), `HeadlessPRDRun`, `anvilctl`, `AutopilotDaemon`.
 
-- [ ] **T11.1 Engine callable without Electron.**
+- [x] **T11.1 Engine callable without Electron.**
       Files: refactor-coating only — ensure `src/governance/**` imports no `electron` (write a lint-style unit test: scan files for `from "electron"` and fail if found in `src/governance/`).
       RED: the scan test fails on first run if any import exists (fix by injection until green).
 
@@ -533,10 +533,10 @@ Reference: `ANVIL` `AnvilCoreSDK`, `RPCServer` (unix socket JSON-RPC), `Headless
 - [x] **T11.4 RPC ↔ engine wiring.**
       Same files. RED: `execute` starts a governed run (injected fakes) and `status` reports run state transitions.
 
-- [ ] **T11.5 GitHub issue intake.**
+- [x] **T11.5 GitHub issue intake.**
       Seam S3 (exec gh). Files: `src/governance/headless/issue_intake.ts` + test with injected runCommand. RED: fetches issue title/body via `gh issue view --json`, maps to `ProjectIntentBundle` (rawIntent + metadata).
 
-- [ ] **T11.6 Autopilot loop (PR out).**
+- [x] **T11.6 Autopilot loop (PR out).**
       Same files. RED: `it("turns an issue into a branch, governed run, and a draft PR")` — injected gh/git commands asserted in order (branch, commit, push, `gh pr create --draft`); failure path → PR body contains verification report.
       **Phase gate:** full `npm test`; `npm run build`; commit.
 
