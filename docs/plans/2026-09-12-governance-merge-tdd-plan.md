@@ -382,7 +382,7 @@ Reference: `ANVIL/anvil-macOS/Core/Critic/`, `AdversarialCouncilEngine` (3-round
       RED: `it("accumulates usage and halts at the ceiling")` — `record({input, output, costUsd})` ×n → third record past ceiling throws `DyadError` kind `BudgetExceeded` (add kind per `rules/dyad-errors.md`); `it("computes remaining budget")`.
       GREEN: class; default ceiling from settings (`governanceBudgetUsd`, default $5/run; read `rules/adding-settings.md`).
 
-- [ ] **T6.7 Wire gate + budget into governed runs.**
+- [x] **T6.7 Wire gate + budget into governed runs.**
       Seam S4. Files: extend integration test.
       RED: `it("pauses a run with a blocking gate and resumes on user resolution")` — harness produces a split verdict → run status `gate_open`, downstream turn blocked; approving resolution resumes.
       GREEN: coordinator consumes T6.5/T6.6; run events logged via T2.5.

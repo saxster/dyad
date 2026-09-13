@@ -326,4 +326,17 @@ export function registerGovernanceHandlers(): void {
       };
     },
   );
+
+  createTypedHandler(
+    governanceContracts.resolveGate,
+    async (_event, { runId, resolution }) => {
+      const status = resolution === "approve" ? "running" : "cancelled";
+      db.update(governanceRuns)
+        .set({ status })
+        .where(eq(governanceRuns.id, runId))
+        .run();
+      await appendRunEvent(runId, "gate_resolved", { resolution });
+      return { status };
+    },
+  );
 }

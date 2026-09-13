@@ -85,6 +85,14 @@ export const governanceContracts = {
       })
       .nullable(),
   }),
+  resolveGate: defineContract({
+    channel: "governance:resolve-gate",
+    input: z.object({
+      runId: z.number(),
+      resolution: z.enum(["approve", "cancel"]),
+    }),
+    output: z.object({ status: z.string() }),
+  }),
 } as const;
 
 export const governanceClient = createClient(governanceContracts);

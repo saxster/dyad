@@ -20,6 +20,7 @@ import { registerGovernanceHandlers } from "./governance_handlers";
 import { ArtifactStore } from "@/governance/artifacts/artifact_store";
 import { parseSpecBundle } from "@/governance/core/spec_bundle_schemas";
 import {
+  governanceRuns,
   specBundles,
   specVerifications,
   governanceRunEvents,
@@ -202,5 +203,55 @@ describe("governance approval gate (integration)", () => {
     ).toBe(true);
     const events = harness.db.select().from(governanceRunEvents).all();
     expect(events.some((e) => e.type === "verification_completed")).toBe(true);
+  }, 60_000);
+
+  it("pauses a run with a blocking gate and resumes on user resolution", async () => {
+    const store = new ArtifactStore(harness.appDir);
+    const bundle = parseSpecBundle(readFileSync(FIXTURE_PATH, "utf8"));
+    const approved = await store.saveBundle({
+      ...bundle,
+      approvalStatus: "approved",
+      approvedAt: new Date().toISOString(),
+    });
+    harness.db
+      .insert(specBundles)
+      .values({
+        appId: harness.appId,
+        chatId: harness.chatId,
+        artifactVersion: approved.version,
+        approvalStatus: "approved",
+      })
+      .run();
+
+    const run = harness.db
+      .insert(governanceRuns)
+      .values({
+        appId: harness.appId,
+        chatId: harness.chatId,
+        lane: "governed",
+        tier: "standard",
+        status: "gate_open",
+      })
+      .returning({ id: governanceRuns.id })
+      .get();
+
+    const turn = await harness.streamChat(GOVERNED_PROMPT);
+    const errors = turn.eventsFor("chat:response:error");
+    expect(errors).toHaveLength(1);
+    expect(JSON.stringify(errors[0].payload)).toContain("gate");
+
+    const resolveGate = getRegisteredHandlerForTesting(
+      "governance:resolve-gate",
+    );
+    const result = (await resolveGate({} as never, {
+      runId: run.id,
+      resolution: "approve",
+    })) as { status: string };
+    expect(result.status).toBe("running");
+
+    const turn2 = await harness.streamChat(GOVERNED_PROMPT);
+    expect(turn2.eventsFor("chat:response:error")).toHaveLength(0);
+    const messages = await harness.db.query.messages.findMany();
+    expect(messages.some((m) => m.role === "assistant")).toBe(true);
   }, 60_000);
 });

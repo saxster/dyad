@@ -1202,6 +1202,26 @@ export function registerChatStreamHandlers() {
             DyadErrorKind.Precondition,
           );
         }
+        // Blocking gate (private fork): a contested council verdict opens a
+        // gate on the latest governance run; governed turns are refused until
+        // the user resolves it.
+        const gateOpenRun = await db
+          .select({ id: governanceRuns.id })
+          .from(governanceRuns)
+          .where(
+            and(
+              eq(governanceRuns.appId, chat.appId),
+              eq(governanceRuns.status, "gate_open"),
+            ),
+          )
+          .orderBy(desc(governanceRuns.id))
+          .get();
+        if (gateOpenRun) {
+          throw new DyadError(
+            "This turn routed to the governed lane but a council gate is open. Resolve the gate (governance:resolve-gate) before running governed turns.",
+            DyadErrorKind.Precondition,
+          );
+        }
       }
 
       // Reserve quota before redo or attachment persistence. The reservation

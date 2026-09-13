@@ -1,7 +1,9 @@
 import { z } from "zod";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { councilVerdicts } from "@/db/schema";
+import { councilVerdicts, governanceRuns } from "@/db/schema";
 import { runCouncil } from "@/governance/council/council_engine";
+import { evaluateGateTriggers } from "@/governance/core/heuristic_gate";
 import { ToolDefinition, AgentContext } from "./types";
 
 const conveneCouncilSchema = z.object({
@@ -36,6 +38,34 @@ export const conveneCouncilTool: ToolDefinition<
         verdictJson: JSON.stringify(verdict),
       })
       .run();
+
+    // A contested verdict is a blocking heuristic gate: mark the app's latest
+    // running governance run as gate_open so governed turns are refused until
+    // the user resolves it (governance:resolve-gate).
+    const gate = evaluateGateTriggers({
+      verdict,
+      plannedScope: { files: 0 },
+      diffStats: { filesChanged: 0 },
+    });
+    if (gate.blocking) {
+      const runningRun = db
+        .select({ id: governanceRuns.id })
+        .from(governanceRuns)
+        .where(
+          and(
+            eq(governanceRuns.appId, ctx.appId),
+            eq(governanceRuns.status, "running"),
+          ),
+        )
+        .orderBy(desc(governanceRuns.id))
+        .get();
+      if (runningRun) {
+        db.update(governanceRuns)
+          .set({ status: "gate_open" })
+          .where(eq(governanceRuns.id, runningRun.id))
+          .run();
+      }
+    }
 
     const findingCount = verdict.critiques.reduce(
       (sum, report) => sum + report.findings.length,
