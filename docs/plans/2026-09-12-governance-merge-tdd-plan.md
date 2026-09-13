@@ -494,7 +494,7 @@ Reference: `ANVIL` `TaskGraphOrchestrator`, `BackPressurePolicy` (max 4 runners)
 
 Reference: `ANVIL` `[INCUB]` (Ideate→Specify→Challenge→Commit→Build; `CommittedHypothesis`), `[CART]` ThoughtStore (v1: concept tags only, no embeddings).
 
-- [ ] **T10.1 Incubation state machine.**
+- [x] **T10.1 Incubation state machine.**
       Seam S1. Files: test + impl `src/governance/core/incubation_state.ts`.
       RED: allowed transitions Ideate→Specify→Challenge→Commit→Build, regression allowed one stage back, invalid jumps rejected; `CommittedHypothesis` payload requires `problem, hypothesis, successCriteria`.
 
