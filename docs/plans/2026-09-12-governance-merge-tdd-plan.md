@@ -498,7 +498,7 @@ Reference: `ANVIL` `[INCUB]` (Ideate→Specify→Challenge→Commit→Build; `Co
       Seam S1. Files: test + impl `src/governance/core/incubation_state.ts`.
       RED: allowed transitions Ideate→Specify→Challenge→Commit→Build, regression allowed one stage back, invalid jumps rejected; `CommittedHypothesis` payload requires `problem, hypothesis, successCriteria`.
 
-- [ ] **T10.2 Incubation session persistence.**
+- [x] **T10.2 Incubation session persistence.**
       Seam S2. Files: extend artifact store — `.dyad/incubation/sessions/<id>/session.json` + `transcript.md`; RED: save/load round-trip + append-transcript.
 
 - [ ] **T10.3 Hypothesis → spec bridge.**

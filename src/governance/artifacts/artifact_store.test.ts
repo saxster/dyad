@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -7,7 +7,13 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
-import { ArtifactStore, exportVerificationScripts } from "./artifact_store";
+import {
+  ArtifactStore,
+  appendTranscript,
+  exportVerificationScripts,
+  loadIncubationSession,
+  saveIncubationSession,
+} from "./artifact_store";
 import { parseSpecBundle } from "../core/spec_bundle_schemas";
 import type { SpecBundle } from "../core/spec_bundle_schemas";
 import { DyadErrorKind } from "@/errors/dyad_error";
@@ -172,5 +178,52 @@ describe("ArtifactStore", () => {
     );
     expect(readme).toContain("verify-US-1-AC-1.sh");
     expect(readme).toContain("no verification contract");
+  });
+});
+
+describe("incubation session persistence", () => {
+  const roots: string[] = [];
+
+  afterEach(async () => {
+    for (const root of roots.splice(0)) {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  async function makeRoot(): Promise<string> {
+    const root = await mkdtemp(join(tmpdir(), "gov-incubation-"));
+    roots.push(root);
+    return root;
+  }
+
+  it("saves and loads an incubation session round-trip", async () => {
+    const root = await makeRoot();
+    const session = {
+      id: "incub-1",
+      stage: "ideate" as const,
+      createdAt: "2026-09-14T10:00:00.000Z",
+      hypothesis: {
+        problem: "New chats lose every prior decision",
+        hypothesis: "Project memory injection fixes re-briefing",
+        successCriteria: ["New chats recall prior decisions unprompted"],
+      },
+    };
+
+    await saveIncubationSession(root, session);
+    const loaded = await loadIncubationSession(root, "incub-1");
+
+    expect(loaded).toEqual(session);
+  });
+
+  it("appends transcript lines and reads them back CRLF-safe", async () => {
+    const root = await makeRoot();
+    await appendTranscript(root, "incub-1", "first line");
+    await appendTranscript(root, "incub-1", "second line");
+
+    const raw = await readFile(
+      join(root, ".dyad", "incubation", "sessions", "incub-1", "transcript.md"),
+      "utf8",
+    );
+    expect(raw.split(/\r?\n/)).toEqual(["first line", "second line", ""]);
   });
 });

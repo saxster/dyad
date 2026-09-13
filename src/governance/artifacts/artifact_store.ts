@@ -1,6 +1,17 @@
-import { mkdir, readFile, readdir, rename, writeFile } from "node:fs/promises";
+import {
+  appendFile,
+  mkdir,
+  readFile,
+  readdir,
+  rename,
+  writeFile,
+} from "node:fs/promises";
 import { join } from "node:path";
 import { DyadError, DyadErrorKind } from "@/errors/dyad_error";
+import type {
+  CommittedHypothesis,
+  IncubationStage,
+} from "../core/incubation_state";
 import {
   parseSpecBundle,
   serializeSpecBundle,
@@ -187,4 +198,48 @@ export class ArtifactStore {
     const history = await this.listHistory();
     return history.length > 0 ? history[history.length - 1].version : 0;
   }
+}
+
+export interface IncubationSession {
+  id: string;
+  stage: IncubationStage;
+  createdAt: string;
+  hypothesis?: CommittedHypothesis;
+}
+
+function incubationSessionDir(root: string, id: string): string {
+  return join(root, ".dyad", "incubation", "sessions", id);
+}
+
+export async function saveIncubationSession(
+  root: string,
+  session: IncubationSession,
+): Promise<void> {
+  const dir = incubationSessionDir(root, session.id);
+  await mkdir(dir, { recursive: true });
+  await atomicWrite(
+    join(dir, "session.json"),
+    JSON.stringify(session, null, 2),
+  );
+}
+
+export async function loadIncubationSession(
+  root: string,
+  id: string,
+): Promise<IncubationSession> {
+  const raw = await readFile(
+    join(incubationSessionDir(root, id), "session.json"),
+    "utf8",
+  );
+  return JSON.parse(raw) as IncubationSession;
+}
+
+export async function appendTranscript(
+  root: string,
+  id: string,
+  line: string,
+): Promise<void> {
+  const dir = incubationSessionDir(root, id);
+  await mkdir(dir, { recursive: true });
+  await appendFile(join(dir, "transcript.md"), `${line}\n`);
 }
