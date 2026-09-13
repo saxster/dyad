@@ -30,3 +30,23 @@ export class BudgetGovernor {
     return this.ceilingUsd - this.totalUsd;
   }
 }
+
+export const BLENDED_USD_PER_MILLION = 3;
+
+export interface CouncilCostEstimate {
+  lowUsd: number;
+  highUsd: number;
+}
+
+export function estimateCouncilCost(
+  members: number,
+  rounds: number,
+  avgTokens: number,
+): CouncilCostEstimate {
+  const totalTokens = members * rounds * avgTokens;
+  const round3 = (value: number) => Math.round(value * 1000) / 1000;
+  return {
+    lowUsd: round3((totalTokens / 1e6) * BLENDED_USD_PER_MILLION),
+    highUsd: round3((totalTokens / 1e6) * (BLENDED_USD_PER_MILLION * 2)),
+  };
+}

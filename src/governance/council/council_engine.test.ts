@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { setModelClientFetchForTesting } from "@/ipc/utils/test_fetch_override";
+import { readSettings } from "@/main/settings";
 import { runCouncil } from "./council_engine";
+import { DyadErrorKind } from "@/errors/dyad_error";
 
 const mocks = vi.hoisted(() => ({
   logger: {
@@ -240,5 +242,52 @@ describe("runCouncil", () => {
     const verdict = await runCouncil({ question: "q", context: "c" });
 
     expect(verdict.classification).toBe("unavailable");
+  });
+
+  it("throws BudgetExceeded when the governance budget is exhausted", async () => {
+    vi.stubEnv("DYAD_ENGINE_URL", "https://engine.example.test/v1");
+    vi.mocked(readSettings).mockReturnValueOnce({
+      enableDyadPro: true,
+      governanceBudgetUsd: 0.01,
+      providerSettings: {
+        auto: { apiKey: { value: "dyad-pro-key" } },
+      },
+    } as any);
+    setModelClientFetchForTesting(
+      vi.fn(async (input: URL | RequestInfo, init?: RequestInit) => {
+        const body = JSON.parse((init?.body as string) ?? "{}");
+        return new Response(
+          JSON.stringify({
+            id: "resp-test",
+            created_at: 1_700_000_000,
+            model: body.model ?? "",
+            output: [
+              {
+                type: "message",
+                role: "assistant",
+                id: "msg-test",
+                content: [
+                  {
+                    type: "output_text",
+                    text: JSON.stringify({
+                      findings: [
+                        { severity: "major", claim: "c", evidence: "e" },
+                      ],
+                    }),
+                    annotations: [],
+                  },
+                ],
+              },
+            ],
+            usage: { input_tokens: 1, output_tokens: 1 },
+          }),
+          { headers: { "Content-Type": "application/json" } },
+        );
+      }),
+    );
+
+    await expect(
+      runCouncil({ question: "q", context: "c" }),
+    ).rejects.toMatchObject({ kind: DyadErrorKind.BudgetExceeded });
   });
 });

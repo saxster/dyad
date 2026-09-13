@@ -2,6 +2,7 @@ import { generateText } from "ai";
 import log from "electron-log";
 import { readSettings } from "@/main/settings";
 import { getModelClient } from "@/ipc/utils/get_model_client";
+import { DyadError, DyadErrorKind } from "@/errors/dyad_error";
 import type { UserSettings } from "@/lib/schemas";
 import { buildCouncilSystemPrompt } from "@/prompts/council_prompts";
 import {
@@ -10,8 +11,15 @@ import {
   type MemberFinding,
   type MemberReport,
 } from "@/governance/core/verdict_aggregator";
+import {
+  BudgetGovernor,
+  estimateCouncilCost,
+} from "@/governance/core/budget_governor";
 
 const logger = log.scope("council_engine");
+
+/** Rough per-call token budget used for council cost estimates. */
+export const COUNCIL_AVG_TOKENS_PER_MEMBER_ROUND = 8000;
 
 export interface CouncilMember {
   id: string;
@@ -40,6 +48,12 @@ export async function runCouncil(
   { rounds = 3 }: { rounds?: number } = {},
 ): Promise<CouncilRunResult> {
   const settings = readSettings() as UserSettings;
+  const budget = new BudgetGovernor(settings.governanceBudgetUsd ?? 5);
+  const perMemberRoundCostUsd = estimateCouncilCost(
+    1,
+    1,
+    COUNCIL_AVG_TOKENS_PER_MEMBER_ROUND,
+  ).lowUsd;
   const unavailable: CouncilRunResult = {
     classification: "unavailable",
     consensusScore: 0,
@@ -65,10 +79,22 @@ export async function runCouncil(
           prompt: `Question: ${input.question}\n\nContext:\n${input.context}`,
           maxRetries: 0,
         });
+        budget.record({
+          input: 0,
+          output: 0,
+          costUsd: perMemberRoundCostUsd,
+        });
         const parsed = JSON.parse(text) as { findings: MemberFinding[] };
         reports.push({ memberId: member.id, findings: parsed.findings });
       } catch (error) {
-        // A member that fails a round simply does not report.
+        // A member that fails a round simply does not report — but an
+        // exhausted governance budget is a hard stop for the whole council.
+        if (
+          error instanceof DyadError &&
+          error.kind === DyadErrorKind.BudgetExceeded
+        ) {
+          throw error;
+        }
         logger.warn(`council member ${member.id} failed round ${round}`, error);
       }
     }

@@ -2,8 +2,13 @@ import { z } from "zod";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { councilVerdicts, governanceRuns } from "@/db/schema";
-import { runCouncil } from "@/governance/council/council_engine";
+import {
+  runCouncil,
+  DEFAULT_COUNCIL_MEMBERS,
+  COUNCIL_AVG_TOKENS_PER_MEMBER_ROUND,
+} from "@/governance/council/council_engine";
 import { evaluateGateTriggers } from "@/governance/core/heuristic_gate";
+import { estimateCouncilCost } from "@/governance/core/budget_governor";
 import { ToolDefinition, AgentContext } from "./types";
 
 const conveneCouncilSchema = z.object({
@@ -24,7 +29,14 @@ export const conveneCouncilTool: ToolDefinition<
   defaultConsent: "ask",
   modifiesState: false,
 
-  getConsentPreview: () => "Convene the multi-model council (may cost tokens)",
+  getConsentPreview: () => {
+    const { lowUsd, highUsd } = estimateCouncilCost(
+      DEFAULT_COUNCIL_MEMBERS.length,
+      3,
+      COUNCIL_AVG_TOKENS_PER_MEMBER_ROUND,
+    );
+    return `Convene the council (~$${lowUsd.toFixed(2)}–$${highUsd.toFixed(2)})`;
+  },
 
   execute: async (args, ctx: AgentContext) => {
     const verdict = await runCouncil({ question: args.question, context: "" });

@@ -387,7 +387,7 @@ Reference: `ANVIL/anvil-macOS/Core/Critic/`, `AdversarialCouncilEngine` (3-round
       RED: `it("pauses a run with a blocking gate and resumes on user resolution")` — harness produces a split verdict → run status `gate_open`, downstream turn blocked; approving resolution resumes.
       GREEN: coordinator consumes T6.5/T6.6; run events logged via T2.5.
 
-- [ ] **T6.8 Council cost estimate up front.**
+- [x] **T6.8 Council cost estimate up front.**
       Seam S1. Files: extend budget test. `estimateCouncilCost(members, rounds, avgTokens)` → USD range; surfaced in the `convene_council` consent preview (`getConsentPreview`).
       **Phase gate:** ts/lint/fmt; integration suites green; commit.
 
