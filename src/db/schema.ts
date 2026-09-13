@@ -952,3 +952,23 @@ export const councilVerdicts = sqliteTable("council_verdicts", {
     .notNull()
     .default(sql`(unixepoch())`),
 });
+
+export const memoryItems = sqliteTable("memory_items", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  appId: integer("app_id")
+    .notNull()
+    .references(() => apps.id, { onDelete: "cascade" }),
+  namespace: text("namespace").notNull().default("project"),
+  tier: text("tier").notNull(),
+  category: text("category").notNull(),
+  body: text("body").notNull(),
+  importance: integer("importance").notNull().default(5),
+  expiresAt: integer("expires_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  lastAccessedAt: integer("last_accessed_at", { mode: "timestamp" }),
+});

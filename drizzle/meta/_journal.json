@@ -372,6 +372,13 @@
       "when": 1789286221018,
       "tag": "0052_hot_ghost_rider",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "6",
+      "when": 1789288149946,
+      "tag": "0053_fine_lady_vermin",
+      "breakpoints": true
     }
   ]
 }

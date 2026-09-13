@@ -395,7 +395,7 @@ Reference: `ANVIL/anvil-macOS/Core/Critic/`, `AdversarialCouncilEngine` (3-round
 
 Reference: `ANVIL` `ProjectMemoryStore` (3 tiers, 5 categories: auditHistory, userDecision, styleInference, errorPattern, architecturalDecision; importance × recency).
 
-- [ ] **T7.1 Memory table + store CRUD.**
+- [x] **T7.1 Memory table + store CRUD.**
       Seam S8. Files: `memory_items` table (add migration), `src/governance/memory/memory_store.ts` + test.
       RED: insert/read/update-importance/delete round-trip; fields: `id, appId, namespace, tier("short"|"medium"|"long"), category, body, importance(0–10), expiresAt?, createdAt, updatedAt, lastAccessedAt`.
 
