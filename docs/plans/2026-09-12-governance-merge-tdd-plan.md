@@ -461,7 +461,7 @@ Reference: `ANVIL/anvil-macOS/Core/AgentBackend/` (protocol + registry + `SkillM
 
 Reference: `ANVIL` `TaskGraphOrchestrator`, `BackPressurePolicy` (max 4 runners), `WorktreeIsolator`. Dyad already has the hard part: `createBuildWorktree` in `src/pro/main/ipc/handlers/local_agent/tools/run_build.ts:823` (git worktree + overlay + submodule handling).
 
-- [ ] **T9.1 Task graph model + topo order.**
+- [x] **T9.1 Task graph model + topo order.**
       Seam S1. Files: test + impl `src/governance/core/task_graph.ts`.
       RED: `it("orders nodes topologically and rejects cycles")`; `it("computes ready set as nodes with all deps completed")`.
 
