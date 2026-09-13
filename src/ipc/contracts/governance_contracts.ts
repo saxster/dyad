@@ -2,6 +2,28 @@ import { z } from "zod";
 import { defineContract, createClient } from "./core";
 import { SpecBundleSchema } from "../../governance/core/spec_bundle_schemas";
 
+const GovernanceRunSnapshotSchema = z.object({
+  id: z.number(),
+  appId: z.number(),
+  chatId: z.number().nullable(),
+  bundleId: z.number().nullable(),
+  lane: z.string(),
+  tier: z.string(),
+  status: z.string(),
+  startedAt: z.string(),
+  endedAt: z.string().nullable(),
+  events: z.array(
+    z.object({
+      seq: z.number(),
+      type: z.string(),
+      payload: z.unknown(),
+      at: z.string(),
+    }),
+  ),
+});
+
+export type GovernanceRunSnapshot = z.infer<typeof GovernanceRunSnapshotSchema>;
+
 export const governanceContracts = {
   saveSpecBundle: defineContract({
     channel: "governance:save-spec-bundle",
@@ -53,25 +75,13 @@ export const governanceContracts = {
   getGovernanceRun: defineContract({
     channel: "governance:get-run",
     input: z.object({ runId: z.number() }),
-    output: z.object({
-      id: z.number(),
-      appId: z.number(),
-      chatId: z.number().nullable(),
-      bundleId: z.number().nullable(),
-      lane: z.string(),
-      tier: z.string(),
-      status: z.string(),
-      startedAt: z.string(),
-      endedAt: z.string().nullable(),
-      events: z.array(
-        z.object({
-          seq: z.number(),
-          type: z.string(),
-          payload: z.unknown(),
-          at: z.string(),
-        }),
-      ),
-    }),
+    output: GovernanceRunSnapshotSchema,
+  }),
+
+  getLatestGovernanceRun: defineContract({
+    channel: "governance:get-latest-run",
+    input: z.object({ appId: z.number() }),
+    output: GovernanceRunSnapshotSchema.nullable(),
   }),
   getVersionVerification: defineContract({
     channel: "governance:get-version-verification",

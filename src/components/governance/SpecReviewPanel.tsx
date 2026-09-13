@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { RunTimeline } from "@/components/governance/RunTimeline";
 import { diffBundles, renderSpecDiff } from "@/governance/core/spec_diff";
 import { useGovernanceSpecBundle } from "@/hooks/use_governance";
 import { useSettings } from "@/hooks/useSettings";
@@ -18,6 +19,20 @@ export function SpecReviewPanel({ appId }: { appId: number }) {
   const historyQuery = useQuery({
     queryKey: queryKeys.governance.specHistory({ appId }),
     queryFn: () => governanceClient.listSpecBundleHistory({ appId }),
+  });
+
+  // Hooks stay above the early returns; the timeline only mounts when the
+  // app has a governance run to show. Node-status derivation is deferred
+  // wiring — the timeline renders the event stream for now.
+  const latestRunQuery = useQuery({
+    queryKey: queryKeys.governance.latestRun({ appId }),
+    queryFn: () => governanceClient.getLatestGovernanceRun({ appId }),
+  });
+  const latestRun = latestRunQuery.data ?? null;
+  const runQuery = useQuery({
+    queryKey: queryKeys.governance.run({ runId: latestRun?.id ?? null }),
+    queryFn: () => governanceClient.getGovernanceRun({ runId: latestRun!.id }),
+    enabled: latestRun !== null,
   });
 
   if (settings?.enableGovernance === false) {
@@ -125,6 +140,17 @@ export function SpecReviewPanel({ appId }: { appId: number }) {
           Reject
         </Button>
       </div>
+
+      {latestRun ? (
+        <RunTimeline
+          nodes={[]}
+          events={(runQuery.data?.events ?? []).map(({ seq, type, at }) => ({
+            seq,
+            type,
+            at,
+          }))}
+        />
+      ) : null}
     </div>
   );
 }

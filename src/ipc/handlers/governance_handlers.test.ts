@@ -4,6 +4,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { DyadErrorKind } from "@/errors/dyad_error";
 import {
   setupHandlerTestHarness,
   type HandlerTestHarness,
@@ -356,5 +357,114 @@ describe("verified checkpoints", () => {
       red: 1,
       failing: ["US-1/AC-2"],
     });
+  });
+});
+
+describe("governance run timeline handlers", () => {
+  let harness: HandlerTestHarness;
+  let appId: number;
+  let runId: number;
+
+  beforeEach(() => {
+    harness = setupHandlerTestHarness();
+    registerGovernanceHandlers();
+    const app = harness.db
+      .insert(apps)
+      .values({ name: "Timeline App", path: "/tmp/gov-timeline" })
+      .returning({ id: apps.id })
+      .get();
+    appId = app.id;
+    const run = harness.db
+      .insert(governanceRuns)
+      .values({
+        appId,
+        chatId: null,
+        lane: "governed",
+        tier: "standard",
+        status: "running",
+      })
+      .returning({ id: governanceRuns.id })
+      .get();
+    runId = run.id;
+  });
+
+  afterEach(() => harness.dispose());
+
+  it("returns the run with parsed events in seq order", async () => {
+    await appendRunEvent(runId, "turn_routed", { lane: "governed" });
+    await appendRunEvent(runId, "verdict", { green: 1, red: 0 });
+
+    const run = await harness.invokeHandler<{
+      id: number;
+      appId: number;
+      lane: string;
+      tier: string;
+      status: string;
+      startedAt: string;
+      endedAt: string | null;
+      events: {
+        seq: number;
+        type: string;
+        payload: unknown;
+        at: string;
+      }[];
+    }>("governance:get-run", { runId });
+
+    expect(run.id).toBe(runId);
+    expect(run.appId).toBe(appId);
+    expect(run.lane).toBe("governed");
+    expect(run.tier).toBe("standard");
+    expect(run.status).toBe("running");
+    expect(typeof run.startedAt).toBe("string");
+    expect(run.endedAt).toBeNull();
+    expect(run.events.map((event) => event.seq)).toEqual([1, 2]);
+    expect(run.events.map((event) => event.type)).toEqual([
+      "turn_routed",
+      "verdict",
+    ]);
+    expect(run.events[0].payload).toEqual({ lane: "governed" });
+    expect(typeof run.events[0].at).toBe("string");
+  });
+
+  it("throws NotFound for a missing run", async () => {
+    await expect(
+      harness.invokeHandler("governance:get-run", { runId: 424242 }),
+    ).rejects.toThrow(
+      expect.objectContaining({ kind: DyadErrorKind.NotFound }),
+    );
+  });
+
+  it("returns the newest run for an app and null when it has none", async () => {
+    await appendRunEvent(runId, "turn_routed", {});
+    const second = harness.db
+      .insert(governanceRuns)
+      .values({
+        appId,
+        chatId: null,
+        lane: "governed",
+        tier: "surgical",
+        status: "running",
+      })
+      .returning({ id: governanceRuns.id })
+      .get();
+
+    const latest = await harness.invokeHandler<{
+      id: number;
+      events: unknown[];
+    } | null>("governance:get-latest-run", { appId });
+    expect(latest).not.toBeNull();
+    expect(latest!.id).toBe(second.id);
+    expect(latest!.events).toEqual([]);
+
+    const runless = harness.db
+      .insert(apps)
+      .values({ name: "Runless App", path: "/tmp/gov-runless" })
+      .returning({ id: apps.id })
+      .get();
+    const none = await harness.invokeHandler<unknown>(
+      "governance:get-latest-run",
+      { appId: runless.id },
+    );
+    expect(none).toBeNull();
   });
 });

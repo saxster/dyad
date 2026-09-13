@@ -482,7 +482,7 @@ Reference: `ANVIL` `TaskGraphOrchestrator`, `BackPressurePolicy` (max 4 runners)
 - [x] **T9.6 Manifest → DAG compiler.**
       Seam S1. Files: `src/governance/core/manifest_to_graph.ts` + test. RED: `it("compiles an approved bundle's task manifest into a graph with traceability")` — task→story links preserved on nodes.
 
-- [ ] **T9.7 RunTimeline UI.**
+- [x] **T9.7 RunTimeline UI.**
       Seam S10. Files: `src/components/governance/RunTimeline.tsx` + test — node states (pending/running/green/red/blocked), event stream consumption via IPC subscription.
       RED: `it("renders node states from a run snapshot")`.
 

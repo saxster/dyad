@@ -490,6 +490,10 @@ export const queryKeys = {
       appId: number | null;
       commitHash: string;
     }) => ["governance", "versionVerification", appId, commitHash] as const,
+    run: ({ runId }: { runId: number | null }) =>
+      ["governance", "run", runId] as const,
+    latestRun: ({ appId }: { appId: number | null }) =>
+      ["governance", "latestRun", appId] as const,
   },
 } as const;
 

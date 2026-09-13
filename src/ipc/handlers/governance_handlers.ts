@@ -59,6 +59,43 @@ export async function appendRunEvent(
   return { id: inserted.id, runId, seq, type };
 }
 
+async function loadRunSnapshot(runId: number) {
+  const run = await db
+    .select()
+    .from(governanceRuns)
+    .where(eq(governanceRuns.id, runId))
+    .get();
+  if (!run) {
+    throw new DyadError(
+      `governance run ${runId} not found`,
+      DyadErrorKind.NotFound,
+    );
+  }
+  const events = await db
+    .select()
+    .from(governanceRunEvents)
+    .where(eq(governanceRunEvents.runId, runId))
+    .orderBy(governanceRunEvents.seq)
+    .all();
+  return {
+    id: run.id,
+    appId: run.appId,
+    chatId: run.chatId,
+    bundleId: run.bundleId,
+    lane: run.lane,
+    tier: run.tier,
+    status: run.status,
+    startedAt: run.startedAt.toISOString(),
+    endedAt: run.endedAt ? run.endedAt.toISOString() : null,
+    events: events.map((event) => ({
+      seq: event.seq,
+      type: event.type,
+      payload: JSON.parse(event.payloadJson) as unknown,
+      at: event.at.toISOString(),
+    })),
+  };
+}
+
 export interface VerificationStamp {
   verified: boolean;
   criteriaCount: number;
@@ -353,6 +390,26 @@ export function registerGovernanceHandlers(): void {
         .run();
       await appendRunEvent(runId, "gate_resolved", { resolution });
       return { status };
+    },
+  );
+
+  createTypedHandler(
+    governanceContracts.getGovernanceRun,
+    async (_event, { runId }) => {
+      return loadRunSnapshot(runId);
+    },
+  );
+
+  createTypedHandler(
+    governanceContracts.getLatestGovernanceRun,
+    async (_event, { appId }) => {
+      const run = await db
+        .select({ id: governanceRuns.id })
+        .from(governanceRuns)
+        .where(eq(governanceRuns.appId, appId))
+        .orderBy(desc(governanceRuns.id))
+        .get();
+      return run ? loadRunSnapshot(run.id) : null;
     },
   );
 }
