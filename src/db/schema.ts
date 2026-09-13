@@ -929,6 +929,7 @@ export const specVerifications = sqliteTable("spec_verifications", {
     .references(() => governanceRuns.id, { onDelete: "cascade" }),
   versionId: integer("version_id"),
   criterionKey: text("criterion_key").notNull(),
+  kind: text("kind").notNull().default("check"),
   status: text("status").notNull(),
   exitCode: integer("exit_code"),
   outputTail: text("output_tail"),

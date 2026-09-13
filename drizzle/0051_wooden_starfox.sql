@@ -1,0 +1,1 @@
+ALTER TABLE `spec_verifications` ADD `kind` text DEFAULT 'check' NOT NULL;

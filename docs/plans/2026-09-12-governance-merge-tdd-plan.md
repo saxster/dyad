@@ -322,7 +322,7 @@ Reference: `ANVIL/anvil-macOS/Core/Verification/` (`VerificationContractRunner.s
       Same files. RED: `it("refuses commands outside the safe-command policy")` — deny list mirrors Warden patterns (`rm -rf`, `sudo`, `git push`, `curl | sh`, `chmod 777`, anything with `;` after `rm`), allow npm test/node/npx tsc/git diff.
       GREEN: `isSafeVerificationCommand(cmd)` checked before exec; DyadError kind `Validation` otherwise.
 
-- [ ] **T5.4 Red-first probe.**
+- [x] **T5.4 Red-first probe.**
       Same files (or `red_first.ts`). RED: `it("marks a criterion unproven when its command is already green before implementation")` — probe runs contracts at spec-approval time; already-green criteria get `redFirst: false` and are excluded from "verified" claims; `it("marks red-first criteria eligible")` when red pre-implementation.
       GREEN: `probeRedFirst(contracts, cwd)` — run at approval; persist results into `spec_verifications` with type `probe`.
 
