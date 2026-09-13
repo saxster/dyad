@@ -476,7 +476,7 @@ Reference: `ANVIL` `TaskGraphOrchestrator`, `BackPressurePolicy` (max 4 runners)
       Seam S1+fake. Files: `src/governance/runs/dag_orchestrator.ts` + test with injected backend + injected worktree factory.
       RED: `it("executes a 3-node DAG with isolation, merges results, and emits run events")` — each node gets a worktree (factory returns tmp dirs), results merged in topo order, conflict → surfaced.
 
-- [ ] **T9.5 Failure + partial continuation.**
+- [x] **T9.5 Failure + partial continuation.**
       Same files. RED: `it("fails downstream of a failed node but completes independent subtrees")`; `it("halts the whole run when the budget governor throws")`.
 
 - [ ] **T9.6 Manifest → DAG compiler.**

@@ -4,6 +4,8 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { BackendTask, GovernedBackend } from "@/governance/backends/types";
 import { TaskNode } from "@/governance/core/task_graph";
+import { BudgetGovernor } from "@/governance/core/budget_governor";
+import { DyadErrorKind } from "@/errors/dyad_error";
 import { executeDag } from "./dag_orchestrator";
 
 interface FakeNodeBehavior {
@@ -128,5 +130,77 @@ describe("executeDag", () => {
     expect(conflicts[0].payload.nodes).toHaveLength(2);
     expect(conflicts[0].payload.nodes).toContain("b");
     expect(conflicts[0].payload.nodes).toContain("c");
+  });
+
+  it("fails downstream of a failed node but completes independent subtrees", async () => {
+    // a fails; d depends on a; c is an independent subtree.
+    const dag: TaskNode[] = [
+      { id: "a", deps: [] },
+      { id: "c", deps: [] },
+      { id: "d", deps: ["a"] },
+    ];
+    const tasks: BackendTask[] = [];
+    const backendFor = (node: TaskNode): GovernedBackend => ({
+      async *dispatch(task) {
+        tasks.push(task);
+        if (node.id === "a") {
+          yield { type: "started", node: task.id };
+          yield { type: "failed", node: task.id, error: "boom" };
+          return;
+        }
+        yield { type: "started", node: task.id };
+        yield { type: "output", node: task.id, text: "c-out" };
+        yield { type: "completed", node: task.id, file: "c.txt" };
+      },
+    });
+    const worktree = tmpWorktreeFactory();
+    const sink = recordingEventSink();
+
+    const run = await executeDag(dag, {
+      backendFor,
+      worktreeFor: worktree.worktreeFor,
+      onEvent: sink.onEvent,
+    });
+
+    expect(run.status).toBe("partial");
+    expect(run.completed).toEqual(["c"]);
+    expect(run.blocked).toEqual(["d"]);
+    expect(Object.keys(run.results)).toEqual(["c"]);
+    expect(run.results.c).toBe("c-out");
+    expect([...new Set(tasks.map((task) => task.id))].sort()).toEqual([
+      "a",
+      "c",
+    ]);
+    const blockedEvents = sink.events.filter(
+      (event) => event.type === "node_blocked",
+    );
+    expect(blockedEvents).toHaveLength(1);
+    expect(blockedEvents[0].payload.id).toBe("d");
+    expect(blockedEvents[0].payload.by).toBe("a");
+  });
+
+  it("halts the whole run when the budget governor throws", async () => {
+    const governor = new BudgetGovernor(0);
+    const backendFor = (_node: TaskNode): GovernedBackend => ({
+      async *dispatch(task) {
+        if (task.id === "b") {
+          governor.record({ input: 0, output: 0, costUsd: 1 });
+        }
+        yield { type: "started", node: task.id };
+        yield { type: "completed", node: task.id };
+      },
+    });
+    const worktree = tmpWorktreeFactory();
+    const sink = recordingEventSink();
+
+    await expect(
+      executeDag(threeNodeDag, {
+        backendFor,
+        worktreeFor: worktree.worktreeFor,
+        onEvent: sink.onEvent,
+      }),
+    ).rejects.toThrow(
+      expect.objectContaining({ kind: DyadErrorKind.BudgetExceeded }),
+    );
   });
 });
