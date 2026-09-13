@@ -403,7 +403,7 @@ Reference: `ANVIL` `ProjectMemoryStore` (3 tiers, 5 categories: auditHistory, us
       Same files. RED: `it("evicts expired medium-tier items and never evicts long-tier")` — seed with past/future expiry, run `sweepExpired()`, assert.
       GREEN: delete-where query; call site scheduled lazily on store access (no timer in tests).
 
-- [ ] **T7.3 Ranking.**
+- [x] **T7.3 Ranking.**
       Seam S1. Files: test + impl `src/governance/core/memory_ranking.ts`.
       RED: `it("ranks by importance × recency decay")` — item A importance 9 age 30d vs B importance 5 age 1h → order depends on decay half-life 7d; exact expected order computed from a worked example in the test (independent source of truth: hand-computed numbers, not the formula).
       GREEN: `rankMemories(items, now)`.
