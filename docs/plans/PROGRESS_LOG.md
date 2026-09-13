@@ -174,3 +174,26 @@ Deviations recorded (all consistent with the parent plan's semantics):
   deferred to review as a UX polish item; it is not required by the parent plan's T5.7 GREEN.
 - Gate commands all green: `npm run ts`, fmt/lint (0 errors), `npm run build`, targeted suites,
   and the new `e2e-tests/governance_verification.spec.ts`.
+
+## 2026-09-13 — Phase 6 gate PASSED
+
+- T6.1–T6.8 complete and pushed: verdict aggregation (T6.1), 3-round Delphi council engine over
+  `setModelClientFetchForTesting` (T6.2), member razors in prompts with snapshots (T6.3),
+  `convene_council` tool + `council_verdicts` table (migration 0052, T6.4), heuristic gate
+  triggers (T6.5), `BudgetGovernor` + `DyadErrorKind.BudgetExceeded` (telemetry-filtered) +
+  `governanceBudgetUsd` setting default 5 (T6.6), gate wiring: contested council verdict marks
+  the latest running `governance_runs` row `gate_open`, governed turns refused until
+  `governance:resolve-gate` (T6.7), `estimateCouncilCost` + per-member-round budget recording in
+  `runCouncil` + consent-preview cost estimate (T6.8).
+- Gate result: `npm run ts` exit 0; fmt/lint clean (0 errors); consolidated P5+P6 batch
+  21 suites / 251 tests green, including both integration suites
+  (`chat_stream_handlers.governance.integration.test.ts` 5/5,
+  `local_agent_ask.integration.test.ts` 3/3 — its exact-tool list gained `convene_council`,
+  same maintenance rule as T5.5).
+- Engine-test notes for future sessions: under `DYAD_ENGINE_URL` + Pro settings, council members
+  route through the engine keeping their native wire protocols (anthropic → `/v1/messages`,
+  gemini/xai → `/v1/chat/completions`, openai → `/v1/responses`); the test fake fetch shapes
+  responses per endpoint. `getModelClient` requires the mocked `getLanguageModelProviders` to
+  return the provider configs (empty list → "Configuration not found for provider").
+- Deviation: T6.4's checkbox in the parent plan was malformed (`- [ **T6.4` — no `]`/no x);
+  normalized to `- [x]` in this task's commit.
