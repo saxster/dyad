@@ -1,14 +1,18 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { ArtifactStore } from "./artifact_store";
+import { exec } from "node:child_process";
+import { promisify } from "node:util";
+import { ArtifactStore, exportVerificationScripts } from "./artifact_store";
 import { parseSpecBundle } from "../core/spec_bundle_schemas";
 import type { SpecBundle } from "../core/spec_bundle_schemas";
 import { DyadErrorKind } from "@/errors/dyad_error";
+
+const execAsync = promisify(exec);
 
 const FIXTURE_PATH = resolve(
   __dirname,
@@ -94,5 +98,79 @@ describe("ArtifactStore", () => {
     expect(existsSync(join(store.root, ".dyad", "specs", "bundle.json"))).toBe(
       false,
     );
+  });
+
+  it("exports standalone verify-*.sh scripts and an index", async () => {
+    const store = await makeStore();
+    const bundle = parseSpecBundle(readFileSync(FIXTURE_PATH, "utf8"));
+    const withContracts: SpecBundle = {
+      ...bundle,
+      stories: [
+        {
+          id: "US-1",
+          title: "Has contract",
+          narrative:
+            "As a maintainer I want a checkable criterion so that it is verifiable",
+          criteria: [
+            {
+              id: "AC-1",
+              given: "the root exists",
+              when: "the manifest is checked",
+              then: "it is present",
+              verificationContract: "test -f package.json",
+            },
+          ],
+        },
+        {
+          id: "US-2",
+          title: "No contract",
+          narrative:
+            "As a maintainer I want a manual criterion so that humans verify it",
+          criteria: [
+            {
+              id: "AC-1",
+              given: "the design is open",
+              when: "a reviewer reads it",
+              then: "it looks right",
+            },
+          ],
+        },
+      ],
+    };
+    await writeFile(join(store.root, "package.json"), "{}\n");
+
+    await exportVerificationScripts(store.root, withContracts);
+
+    const scriptPath = join(store.root, ".dyad", "bin", "verify-US-1-AC-1.sh");
+    expect(existsSync(scriptPath)).toBe(true);
+    await expect(execAsync(`sh '${scriptPath}'`)).resolves.toBeTruthy();
+
+    const index = JSON.parse(
+      readFileSync(
+        join(store.root, ".dyad", "bin", "verification-tasks.json"),
+        "utf8",
+      ),
+    );
+    expect(index).toEqual({
+      binDirectoryRelativePath: ".dyad/bin",
+      exportedScripts: [
+        {
+          argv: ["test", "-f", "package.json"],
+          scriptRelativePath: ".dyad/bin/verify-US-1-AC-1.sh",
+          criterionKey: "US-1/AC-1",
+          verificationContract: "test -f package.json",
+        },
+      ],
+      skippedTasks: [
+        { criterionKey: "US-2/AC-1", reason: "no verification contract" },
+      ],
+    });
+
+    const readme = readFileSync(
+      join(store.root, ".dyad", "bin", "README.md"),
+      "utf8",
+    );
+    expect(readme).toContain("verify-US-1-AC-1.sh");
+    expect(readme).toContain("no verification contract");
   });
 });

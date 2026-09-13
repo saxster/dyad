@@ -345,7 +345,7 @@ Reference: `ANVIL/anvil-macOS/Core/Verification/` (`VerificationContractRunner.s
       Seam S10. Files: `src/components/governance/VerificationBadge.tsx` + test. Renders on the version/checkpoint row (find version list component): green check + criteria counts, or red with failing criterion keys.
       RED: `it("renders verified state and failing state from props")`.
 
-- [ ] **T5.9 Verification script export.**
+- [x] **T5.9 Verification script export.**
       Seam S2. Files: extend `artifact_store` tests.
       RED: `it("exports standalone verify-*.sh scripts and an index")` — `.dyad/bin/verification-tasks.json`, `README.md`, one `verify-<story>-<criterion>.sh` per contract (format modeled on Anvil's export, see `ANVIL/.anvil/bin/`), runnable via `sh` in the test.
       GREEN: `exportVerificationScripts(root, bundle)`.

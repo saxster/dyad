@@ -8,10 +8,111 @@ import {
   type SpecBundle,
 } from "../core/spec_bundle_schemas";
 import { renderRequirementsMarkdown } from "../core/requirements_markdown";
+import { extractContracts } from "../verification/extract_contracts";
+import { isSafeVerificationCommand } from "../verification/contract_runner";
 
 export interface BundleHistoryEntry {
   version: number;
   bundle: SpecBundle;
+}
+
+async function atomicWrite(filePath: string, contents: string): Promise<void> {
+  const tmpPath = `${filePath}.tmp`;
+  await writeFile(tmpPath, contents);
+  await rename(tmpPath, filePath);
+}
+
+function shQuote(value: string): string {
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+export interface ExportedScript {
+  argv: string[];
+  scriptRelativePath: string;
+  criterionKey: string;
+  verificationContract: string;
+}
+
+export interface SkippedTask {
+  criterionKey: string;
+  reason: string;
+}
+
+export async function exportVerificationScripts(
+  root: string,
+  bundle: SpecBundle,
+): Promise<void> {
+  const binDir = join(root, ".dyad", "bin");
+  await mkdir(binDir, { recursive: true });
+
+  const { executable, manual } = extractContracts(bundle);
+  const exportedScripts: ExportedScript[] = [];
+  const skippedTasks: SkippedTask[] = [];
+
+  for (const contract of executable) {
+    if (!isSafeVerificationCommand(contract.command)) {
+      skippedTasks.push({
+        criterionKey: contract.key,
+        reason: "unsafe command",
+      });
+      continue;
+    }
+    const argv = contract.command.split(/\s+/);
+    const scriptRelativePath = `.dyad/bin/verify-${contract.key.replace(/\//g, "-")}.sh`;
+    const script = [
+      "#!/bin/bash",
+      "set -euo pipefail",
+      "",
+      `cd ${shQuote(root)}`,
+      "command=(",
+      ...argv.map((arg) => `  ${shQuote(arg)}`),
+      ")",
+      "",
+      '"${command[@]}"',
+      "",
+    ].join("\n");
+    await atomicWrite(join(root, scriptRelativePath), script);
+    exportedScripts.push({
+      argv,
+      scriptRelativePath,
+      criterionKey: contract.key,
+      verificationContract: contract.command,
+    });
+  }
+  for (const criterion of manual) {
+    skippedTasks.push({
+      criterionKey: criterion.key,
+      reason: "no verification contract",
+    });
+  }
+
+  await atomicWrite(
+    join(binDir, "verification-tasks.json"),
+    JSON.stringify(
+      {
+        binDirectoryRelativePath: ".dyad/bin",
+        exportedScripts,
+        skippedTasks,
+      },
+      null,
+      2,
+    ),
+  );
+
+  const readme = [
+    "# Verification tasks",
+    "",
+    "## Scripts",
+    ...exportedScripts.map(
+      (script) =>
+        `- \`${script.scriptRelativePath}\` — \`${script.criterionKey}\`: \`${script.verificationContract}\``,
+    ),
+    "",
+    "## Skipped",
+    ...skippedTasks.map((task) => `- \`${task.criterionKey}\`: ${task.reason}`),
+    "",
+  ].join("\n");
+  await atomicWrite(join(binDir, "README.md"), readme);
 }
 
 export class ArtifactStore {
@@ -47,9 +148,9 @@ export class ArtifactStore {
 
     await mkdir(this.historyDir, { recursive: true });
     const historyPath = join(this.historyDir, `${version}-${stamped.id}.json`);
-    await this.atomicWrite(historyPath, serializeSpecBundle(stamped));
-    await this.atomicWrite(this.bundlePath, serializeSpecBundle(stamped));
-    await this.atomicWrite(
+    await atomicWrite(historyPath, serializeSpecBundle(stamped));
+    await atomicWrite(this.bundlePath, serializeSpecBundle(stamped));
+    await atomicWrite(
       this.requirementsPath,
       renderRequirementsMarkdown(stamped),
     );
@@ -85,11 +186,5 @@ export class ArtifactStore {
   private async currentMaxVersion(): Promise<number> {
     const history = await this.listHistory();
     return history.length > 0 ? history[history.length - 1].version : 0;
-  }
-
-  private async atomicWrite(filePath: string, contents: string): Promise<void> {
-    const tmpPath = `${filePath}.tmp`;
-    await writeFile(tmpPath, contents);
-    await rename(tmpPath, filePath);
   }
 }
