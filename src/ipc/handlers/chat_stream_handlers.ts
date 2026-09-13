@@ -27,6 +27,9 @@ import {
   appendRunEvent,
   runGovernedTurnVerification,
 } from "./governance_handlers";
+import { MemoryStore } from "../../governance/memory/memory_store";
+import { buildMemoryContextMessage } from "../../governance/memory/build_memory_context";
+import { rankMemories } from "../../governance/core/memory_ranking";
 import { apps, chats, messages } from "../../db/schema";
 import { scheduleChatSearchIndexing } from "../../pro/main/ipc/handlers/local_agent/chat_search_indexer";
 import { and, desc, eq, isNull } from "drizzle-orm";
@@ -2257,6 +2260,18 @@ ${componentSnippet}
           reinstallAndRestartAppToolAvailable,
           runBuildToolAvailable,
         });
+
+        // Governance fork: inject ranked project memories on governed turns.
+        if (governanceDecision?.lane === "governed") {
+          systemPrompt +=
+            "\n\n" +
+            buildMemoryContextMessage(
+              rankMemories(
+                await new MemoryStore().listForApp(chat.appId),
+                new Date(),
+              ).slice(0, 10),
+            );
+        }
 
         // Add information for any legacy caller that still injects full
         // referenced-app codebases.

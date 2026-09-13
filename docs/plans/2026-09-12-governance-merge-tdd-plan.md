@@ -412,7 +412,7 @@ Reference: `ANVIL` `ProjectMemoryStore` (3 tiers, 5 categories: auditHistory, us
       Seam S5. Files: tool + test, `defaultConsent: "always"` for `userDecision`/`styleInference`, `"ask"` otherwise.
       RED: `it("stores a memory with tier and category validation")`; `it("rejects unknown categories")`.
 
-- [ ] **T7.5 Turn-start injection.**
+- [x] **T7.5 Turn-start injection.**
       Seam S5/S4. Files: extend `prepare_step_utils` additively (`buildMemoryContextMessage`) + integration test.
       RED: `it("injects the top-N ranked memories as a system-side message on governed turns")` (N=10, cap 2,000 chars) — assert present in prepared messages, absent on lean turns.
       GREEN: message builder + call in prepare step (governed lane only).

@@ -19,6 +19,7 @@ import { getRegisteredHandlerForTesting } from "./base";
 import { registerGovernanceHandlers } from "./governance_handlers";
 import { ArtifactStore } from "@/governance/artifacts/artifact_store";
 import { parseSpecBundle } from "@/governance/core/spec_bundle_schemas";
+import { MemoryStore } from "@/governance/memory/memory_store";
 import {
   governanceRuns,
   specBundles,
@@ -253,5 +254,33 @@ describe("governance approval gate (integration)", () => {
     expect(turn2.eventsFor("chat:response:error")).toHaveLength(0);
     const messages = await harness.db.query.messages.findMany();
     expect(messages.some((m) => m.role === "assistant")).toBe(true);
+  }, 60_000);
+
+  it("injects the top-N ranked memories as a system-side message on governed turns", async () => {
+    new MemoryStore().record(harness.appId, {
+      tier: "long",
+      category: "userDecision",
+      body: "memory-marker-123",
+      importance: 9,
+    });
+
+    const governedTurn = await harness.streamChat(
+      "[dump] rotate the leaked api key in .env",
+    );
+    expect(governedTurn.eventsFor("chat:response:error")).toHaveLength(0);
+    // The harness masks system messages in its dump projection; read the raw
+    // recorded request to assert on the real model-visible system prompt.
+    const governedRaw = readFileSync(
+      governedTurn.getServerDump().dumpPath,
+      "utf-8",
+    );
+    expect(governedRaw).toContain("memory-marker-123");
+
+    const leanTurn = await harness.streamChat(
+      "[dump] fix the typo in button label",
+    );
+    expect(leanTurn.eventsFor("chat:response:error")).toHaveLength(0);
+    const leanRaw = readFileSync(leanTurn.getServerDump().dumpPath, "utf-8");
+    expect(leanRaw).not.toContain("memory-marker-123");
   }, 60_000);
 });
