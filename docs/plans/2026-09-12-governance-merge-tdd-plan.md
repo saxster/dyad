@@ -429,7 +429,7 @@ Reference: `ANVIL/anvil-macOS/Core/AgentBackend/` (protocol + registry + `SkillM
       Seam S1-ish (interface + fake). Files: `src/governance/backends/types.ts`, `builtin_backend.ts` + test.
       RED: `it("dispatches via the builtin backend and emits typed events")` — interface `GovernedBackend.dispatch(task): AsyncStream<BackendEvent>`; builtin wraps a fake executor; events `started|output|completed|failed`.
 
-- [ ] **T8.2 CLI detection.**
+- [x] **T8.2 CLI detection.**
       Seam S3 (process). Files: `src/governance/backends/cli_detect.ts` + test with injected `runCommand`.
       RED: `it("detects claude/codex binaries and validates semver minimums")` (claude ≥2.0.0, codex ≥0.100.0 — parse `--version` outputs; missing → unavailable; cache 5 min).
 
