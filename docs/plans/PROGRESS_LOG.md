@@ -114,3 +114,12 @@ Audit verification:
 - Note: `governance:get-run` remains an unregistered typed shell per plan
   (first consumed by Phase 9's RunTimeline); do not call it from the
   renderer before then.
+
+## 2026-09-13 — Companion execution plan for Phases 5–12
+
+`docs/plans/2026-09-13-phases-5-12-execution-plan.md` decomposes every remaining task
+(T5.1–T12.6) into Flash-sized RED/GREEN steps with exact files, seams, hand-worked expected
+values, wiring anchors, verify commands, and commit messages. It also bakes in the session
+learnings (env preflight, preload relative-import rule, getDyadAppPath, buildOptions wiring
+point, settings snapshot regen, Appendix A pre-existing-failure list, owner checkpoints for
+T12.1–T12.3). Future sessions: read the HANDOFF, then this companion plan.
