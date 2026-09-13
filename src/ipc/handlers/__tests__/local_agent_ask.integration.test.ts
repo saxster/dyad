@@ -195,6 +195,7 @@ describe("local-agent ask mode (integration)", () => {
       "read_guide",
       "read_logs",
       "run_type_checks",
+      "run_verifications",
       "set_chat_summary",
       "spawn_agent",
       "web_crawl",

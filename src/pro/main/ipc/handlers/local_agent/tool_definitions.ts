@@ -58,6 +58,7 @@ import {
 } from "./tools/subagent_tools";
 import { planningQuestionnaireTool } from "./tools/planning_questionnaire";
 import { writeSpecTool } from "./tools/write_spec";
+import { runVerificationsTool } from "./tools/run_verifications";
 import { writePlanTool } from "./tools/write_plan";
 import { exitPlanTool } from "./tools/exit_plan";
 import { readGuideTool } from "./tools/read_guide";
@@ -194,6 +195,7 @@ export const TOOL_DEFINITIONS: readonly ToolDefinition[] = [
   writePlanTool,
   exitPlanTool,
   writeSpecTool,
+  runVerificationsTool,
   // App blueprint tools
   writeAppBlueprintTool,
 ];
@@ -760,6 +762,10 @@ export function shouldIncludeTool(
   }
   // Governance fork: write_spec exists only in governed plan mode.
   if (tool.name === "write_spec" && options.enableGovernance !== true) {
+    return false;
+  }
+  // Governance fork: run_verifications exists only when governance is on.
+  if (tool.name === "run_verifications" && options.enableGovernance !== true) {
     return false;
   }
   // In read-only mode, skip tools that modify state.

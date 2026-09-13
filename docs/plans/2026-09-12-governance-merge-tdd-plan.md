@@ -326,7 +326,7 @@ Reference: `ANVIL/anvil-macOS/Core/Verification/` (`VerificationContractRunner.s
       Same files (or `red_first.ts`). RED: `it("marks a criterion unproven when its command is already green before implementation")` — probe runs contracts at spec-approval time; already-green criteria get `redFirst: false` and are excluded from "verified" claims; `it("marks red-first criteria eligible")` when red pre-implementation.
       GREEN: `probeRedFirst(contracts, cwd)` — run at approval; persist results into `spec_verifications` with type `probe`.
 
-- [ ] **T5.5 `run_verifications` tool.**
+- [x] **T5.5 `run_verifications` tool.**
       Seam S5. Files: tool `run_verifications.ts` + test. `defaultConsent: "ask"` (executes shell), `modifiesState: false`.
       RED: `it("runs all contracts for the approved bundle and reports per-criterion status")` — fake ctx with tmp app containing a passing + failing script; result string lists `US-1/AC-1 green`, `US-1/AC-2 red (exit 1)` + output tail; emits `<dyad-status title="Spec verification">` via `ctx.onXmlComplete` (read `rules/chat-message-indicators.md`).
       GREEN: tool wired into `TOOL_DEFINITIONS` (plan + agent modes, governance on).
