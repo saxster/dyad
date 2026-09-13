@@ -360,7 +360,7 @@ Reference: `ANVIL/anvil-macOS/Core/Critic/`, `AdversarialCouncilEngine` (3-round
       RED: `it("classifies unanimous / majority / contested verdicts")` — 4 members all-fail → `unanimous-critical`; 3/4 → `majority`; 2/2 → `contested`; includes per-member critiques and a consensus score (fraction agreeing).
       GREEN: `aggregateVerdict(memberFindings)`.
 
-- [ ] **T6.2 Council engine — members via fake fetch.**
+- [x] **T6.2 Council engine — members via fake fetch.**
       Seam S6. Files: test + impl `src/governance/council/council_engine.ts`.
       RED: `it("runs a 3-round Delphi across configured members and returns an aggregated verdict")` using `setModelClientFetchForTesting` to return scripted JSON critiques per round; assert 3 rounds of fetches per member, cross-critique from round 2 includes round-1 text, output feeds T6.1.
       GREEN: members = provider/model pairs from settings (`councilMembers` default: architect=claude, pragmatist=openai/gpt, fact-checker=gemini, devils-advocate=xai — degrade gracefully to ≥2 available, else return `unavailable`).
