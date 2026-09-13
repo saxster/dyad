@@ -308,7 +308,7 @@ Reference: `ANVIL/anvil-macOS/Core/Workflow/LeanLane.swift:14-42` (exact signal 
 
 Reference: `ANVIL/anvil-macOS/Core/Verification/` (`VerificationContractRunner.swift`, `CriterionRedFirstProbe.swift`, `VerificationProofGate.swift`).
 
-- [ ] **T5.1 Contract extraction.**
+- [x] **T5.1 Contract extraction.**
       Seam S1. Files: test + impl `src/governance/verification/extract_contracts.ts`.
       RED: `it("flattens a bundle into criterion-keyed contracts")` → `[{ key: "US-1/AC-2", command: "npm test -- foo" }]`, skipping criteria without contracts (returned separately as `manual`).
       GREEN: pure flatten.
