@@ -238,3 +238,14 @@ Deviations recorded (all consistent with the parent plan's semantics):
 - Environment note: `npm run db:generate` regenerates cleanly; `rules/windows-spawn.md`
   read before T8.2 (backend spawns stay on argv-style `spawn` with no `cmd.exe`
   interpolation; tests inject the spawn seam per S3).
+
+## 2026-09-13 — Phases 9–12 delta execution plan
+
+`docs/plans/2026-09-13-phases-9-12-execution-plan.md` is the fresh-session companion for the
+remaining leg (T9.1–T12.6). It is a DELTA on top of the 5–12 companion: read the 5–12
+companion's task entry first, then apply the delta plan's corrections and baked decisions.
+It bakes in the P9+ pitfalls discovered during P5–P8 (the `touch` allow-prefix addition the
+DAG marker executor needs, the write_spec-cannot-carry-manifest-tasks gap and its
+on-disk-seeding E2E resolution, `BackendEvent.file`, the node:sqlite E2E assertion pattern,
+the getGovernanceRun typed shell, migration 0054 next). Resume state: HEAD 6d9dbc86, gates
+P5–P8 passed, first unchecked task T9.1.
