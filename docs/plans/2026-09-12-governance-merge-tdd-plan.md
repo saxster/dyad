@@ -508,7 +508,7 @@ Reference: `ANVIL` `[INCUB]` (Ideate→Specify→Challenge→Commit→Build; `Co
 - [x] **T10.4 Thoughts table + capture.**
       Seam S8. Files: `thoughts`, `thought_edges` tables + `src/governance/memory/thought_store.ts` + test — CRUD, tag filter, todo status transitions (`promoteToTodo`, `markDone`).
 
-- [ ] **T10.5 Constellation detection.**
+- [x] **T10.5 Constellation detection.**
       Seam S1. Files: `src/governance/core/constellations.ts` + test. RED: ≥3 thoughts sharing ≥2 tags with pairwise overlap ≥ threshold → one constellation with dominant tags; below → none.
 
 - [ ] **T10.6 Thought panel (minimal).**
