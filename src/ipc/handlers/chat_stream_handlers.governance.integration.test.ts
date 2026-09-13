@@ -19,9 +19,15 @@ import { getRegisteredHandlerForTesting } from "./base";
 import { registerGovernanceHandlers } from "./governance_handlers";
 import { ArtifactStore } from "@/governance/artifacts/artifact_store";
 import { parseSpecBundle } from "@/governance/core/spec_bundle_schemas";
-import { specBundles } from "@/db/schema";
+import {
+  specBundles,
+  specVerifications,
+  governanceRunEvents,
+} from "@/db/schema";
 import { resolve } from "node:path";
 import { readFileSync } from "node:fs";
+import { writeFile } from "node:fs/promises";
+import { join } from "node:path";
 
 const FIXTURE_PATH = resolve(
   __dirname,
@@ -136,5 +142,65 @@ describe("governance approval gate (integration)", () => {
     expect(turn.eventsFor("chat:response:error")).toHaveLength(0);
     const dump = harness.getServerDump();
     expect(dump.text).toContain("stories lack verification contracts");
+  }, 60_000);
+
+  it("runs verifications automatically at governed turn end and includes the verdict in the final message", async () => {
+    const store = new ArtifactStore(harness.appDir);
+    const bundle = parseSpecBundle(readFileSync(FIXTURE_PATH, "utf8"));
+    const approved = await store.saveBundle({
+      ...bundle,
+      approvalStatus: "approved",
+      approvedAt: new Date().toISOString(),
+      stories: [
+        {
+          id: "US-1",
+          title: "Verification spine",
+          narrative:
+            "As a maintainer I want verified checkpoints so that turns are provable",
+          criteria: [
+            {
+              id: "AC-1",
+              given: "the app dir exists",
+              when: "the turn output file is checked",
+              then: "it is present",
+              verificationContract: "test -f file1.txt",
+            },
+          ],
+        },
+      ],
+    });
+    harness.db
+      .insert(specBundles)
+      .values({
+        appId: harness.appId,
+        chatId: harness.chatId,
+        artifactVersion: approved.version,
+        approvalStatus: "approved",
+      })
+      .run();
+
+    // The canned governed-turn response arrives as text (no write_file tool
+    // call in this harness), so seed the app state the contract checks.
+    await writeFile(join(harness.appDir, "file1.txt"), "turn output\n");
+
+    const turn = await harness.streamChat(GOVERNED_PROMPT);
+
+    expect(turn.eventsFor("chat:response:error")).toHaveLength(0);
+    const messages = await harness.db.query.messages.findMany();
+    const lastAssistant = messages.filter((m) => m.role === "assistant").at(-1);
+    expect(lastAssistant?.content).toContain("Spec verification");
+    expect(lastAssistant?.content).toContain("1 green");
+
+    const checks = harness.db.select().from(specVerifications).all();
+    expect(
+      checks.some(
+        (row) =>
+          row.kind === "check" &&
+          row.criterionKey === "US-1/AC-1" &&
+          row.status === "green",
+      ),
+    ).toBe(true);
+    const events = harness.db.select().from(governanceRunEvents).all();
+    expect(events.some((e) => e.type === "verification_completed")).toBe(true);
   }, 60_000);
 });

@@ -336,7 +336,7 @@ Reference: `ANVIL/anvil-macOS/Core/Verification/` (`VerificationContractRunner.s
       RED: `it("stamps a version as verified only when every red-first contract is green")` — after a governed run ends, coordinator links `spec_verifications` rows to the turn's version (`versions.id`) and returns `{ verified: true, criteriaCount, green, red }`; one red → `verified: false` and the turn-end summary must say so.
       GREEN: `stampVerification(runId, versionId)`.
 
-- [ ] **T5.7 Turn-end verification hook.**
+- [x] **T5.7 Turn-end verification hook.**
       Seam S4. Files: extend the P4 integration test file.
       RED: `it("runs verifications automatically at governed turn end and includes the verdict in the final message")` (fake-LLM harness where the model writes a file satisfying the fixture contract).
       GREEN: coordinator call in turn finalization (additive, governed lane only).

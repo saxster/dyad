@@ -23,7 +23,10 @@ import {
   routeTurn,
   type RouteTurnDecision,
 } from "../../governance/core/route_turn";
-import { appendRunEvent } from "./governance_handlers";
+import {
+  appendRunEvent,
+  runGovernedTurnVerification,
+} from "./governance_handlers";
 import { apps, chats, messages } from "../../db/schema";
 import { scheduleChatSearchIndexing } from "../../pro/main/ipc/handlers/local_agent/chat_search_indexer";
 import { and, desc, eq, isNull } from "drizzle-orm";
@@ -2804,6 +2807,21 @@ This conversation includes one or more image attachments. When the user uploads 
           );
           if (streamSuccess) {
             reservedFreeAgentQuotaMessageId = null;
+          }
+
+          // Governance fork: verify the approved spec's contracts at governed
+          // turn end. Best-effort — a verification failure must not fail the
+          // completed turn.
+          if (streamSuccess && governanceDecision?.lane === "governed") {
+            try {
+              await runGovernedTurnVerification({
+                appId: chat.appId,
+                chatId: req.chatId,
+                messageId: placeholderAssistantMessage.id,
+              });
+            } catch (error) {
+              log.warn("governed turn-end verification failed", error);
+            }
           }
 
           finishedNaturally = streamSuccess;

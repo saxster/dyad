@@ -3,10 +3,13 @@ import { db } from "@/db";
 import {
   apps,
   governanceRunEvents,
+  governanceRuns,
   messages,
   specBundles,
   specVerifications,
 } from "@/db/schema";
+import { extractContracts } from "@/governance/verification/extract_contracts";
+import { runContracts } from "@/governance/verification/contract_runner";
 import { DyadError, DyadErrorKind } from "@/errors/dyad_error";
 import { ArtifactStore } from "@/governance/artifacts/artifact_store";
 import {
@@ -105,6 +108,62 @@ export function stampVerification(
   const green = checkRows.filter((row) => row.status === "green").length;
   const red = checkRows.filter((row) => row.status === "red").length;
   return { verified, criteriaCount: checkRows.length, green, red };
+}
+
+export async function runGovernedTurnVerification(options: {
+  appId: number;
+  chatId: number;
+  messageId: number;
+}): Promise<void> {
+  const { store, appPath } = await getArtifactStoreForApp(options.appId);
+  const bundle = await store.loadBundle();
+  if (bundle.approvalStatus !== "approved") {
+    return;
+  }
+  const { executable } = extractContracts(bundle);
+  const results = await runContracts(executable, { cwd: appPath });
+
+  const runRow = await db
+    .select({ id: governanceRuns.id })
+    .from(governanceRuns)
+    .where(eq(governanceRuns.chatId, options.chatId))
+    .orderBy(desc(governanceRuns.id))
+    .get();
+  if (!runRow) {
+    return;
+  }
+
+  for (const result of results) {
+    db.insert(specVerifications)
+      .values({
+        runId: runRow.id,
+        criterionKey: result.key,
+        kind: "check",
+        status: result.status,
+        exitCode: result.exitCode ?? null,
+        outputTail: result.outputTail || null,
+      })
+      .run();
+  }
+
+  const green = results.filter((result) => result.status === "green").length;
+  const red = results.length - green;
+  await appendRunEvent(runRow.id, "verification_completed", { green, red });
+
+  const message = await db
+    .select()
+    .from(messages)
+    .where(eq(messages.id, options.messageId))
+    .get();
+  if (message) {
+    const allGreen = results.length > 0 && green === results.length;
+    db.update(messages)
+      .set({
+        content: `${message.content}\n<dyad-status title="Spec verification" state="${allGreen ? "finished" : "error"}">${green} green, ${red} red</dyad-status>`,
+      })
+      .where(eq(messages.id, options.messageId))
+      .run();
+  }
 }
 
 export function registerGovernanceHandlers(): void {
