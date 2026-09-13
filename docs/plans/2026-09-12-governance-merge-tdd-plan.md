@@ -542,12 +542,12 @@ Reference: `ANVIL` `AnvilCoreSDK`, `RPCServer` (unix socket JSON-RPC), `Headless
 
 ### Phase 12 — Hostinger/Coolify + strip-down (6 tasks)
 
-- [ ] **T12.1 Coolify-on-VPS validation runbook.**
+- [x] **T12.1 Coolify-on-VPS validation runbook.**
       Files: `docs/plans/hostinger-coolify-runbook.md` — manual: install Coolify on the Hostinger VPS, point Dyad's Coolify setup (`src/coolify_setup/`) at it, deploy one fixture app, custom domain. Record every gap hit.
 
 - [ ] **T12.2 Fix the first gap found.** (Placeholder — becomes a concrete TDD task from T12.1 findings; if no gap, close as no-op with evidence.)
 
-- [ ] **T12.3 Generic Postgres decision memo.**
+- [x] **T12.3 Generic Postgres decision memo.**
       Files: `docs/plans/self-hosted-postgres.md` — audit `src/neon_admin/`, `get_neon_project_info` tool, `DATABASE_URL` flows; decide: (a) keep Neon, (b) generic-Postgres integration. If (b): spawn a follow-up plan (do not wing it here).
 
 - [ ] **T12.4 Strip telemetry.**
