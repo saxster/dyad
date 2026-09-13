@@ -13,6 +13,7 @@ import { extractContracts } from "@/governance/verification/extract_contracts";
 import { runContracts } from "@/governance/verification/contract_runner";
 import { DyadError, DyadErrorKind } from "@/errors/dyad_error";
 import { ArtifactStore } from "@/governance/artifacts/artifact_store";
+import { MemoryStore } from "@/governance/memory/memory_store";
 import {
   nextApprovalStatus,
   type SpecBundle,
@@ -150,6 +151,21 @@ export async function runGovernedTurnVerification(options: {
   const green = results.filter((result) => result.status === "green").length;
   const red = results.length - green;
   await appendRunEvent(runRow.id, "verification_completed", { green, red });
+
+  // Post-run learning (private fork): a failing contract becomes an
+  // errorPattern memory so future governed turns are injected with it.
+  if (red > 0) {
+    const redKeys = results
+      .filter((result) => result.status !== "green")
+      .map((result) => result.key);
+    new MemoryStore().record(options.appId, {
+      tier: "medium",
+      category: "errorPattern",
+      body: `Verification failed for: ${redKeys.join(", ")}`,
+      importance: 7,
+    });
+    await appendRunEvent(runRow.id, "memory_recorded", { keys: redKeys });
+  }
 
   const message = await db
     .select()

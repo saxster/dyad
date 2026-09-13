@@ -417,7 +417,7 @@ Reference: `ANVIL` `ProjectMemoryStore` (3 tiers, 5 categories: auditHistory, us
       RED: `it("injects the top-N ranked memories as a system-side message on governed turns")` (N=10, cap 2,000 chars) — assert present in prepared messages, absent on lean turns.
       GREEN: message builder + call in prepare step (governed lane only).
 
-- [ ] **T7.6 Post-run learning hook.**
+- [x] **T7.6 Post-run learning hook.**
       Same integration file. RED: `it("records an errorPattern memory when a governed run fails verification")` — failing T5 run leaves a memory row with the failing criterion keys.
       **Phase gate:** ts/lint/fmt; suites; commit.
 

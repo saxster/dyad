@@ -22,6 +22,7 @@ import { parseSpecBundle } from "@/governance/core/spec_bundle_schemas";
 import { MemoryStore } from "@/governance/memory/memory_store";
 import {
   governanceRuns,
+  memoryItems,
   specBundles,
   specVerifications,
   governanceRunEvents,
@@ -282,5 +283,51 @@ describe("governance approval gate (integration)", () => {
     expect(leanTurn.eventsFor("chat:response:error")).toHaveLength(0);
     const leanRaw = readFileSync(leanTurn.getServerDump().dumpPath, "utf-8");
     expect(leanRaw).not.toContain("memory-marker-123");
+  }, 60_000);
+
+  it("records an errorPattern memory when a governed run fails verification", async () => {
+    const store = new ArtifactStore(harness.appDir);
+    const bundle = parseSpecBundle(readFileSync(FIXTURE_PATH, "utf8"));
+    const approved = await store.saveBundle({
+      ...bundle,
+      approvalStatus: "approved",
+      approvedAt: new Date().toISOString(),
+      stories: [
+        {
+          id: "US-1",
+          title: "Fails verification",
+          narrative:
+            "As a maintainer I want the failing contract recorded so future turns learn",
+          criteria: [
+            {
+              id: "AC-1",
+              given: "the app dir exists",
+              when: "the missing file is checked",
+              then: "it is absent",
+              verificationContract: "test -f missing.txt",
+            },
+          ],
+        },
+      ],
+    });
+    harness.db
+      .insert(specBundles)
+      .values({
+        appId: harness.appId,
+        chatId: harness.chatId,
+        artifactVersion: approved.version,
+        approvalStatus: "approved",
+      })
+      .run();
+
+    const turn = await harness.streamChat(GOVERNED_PROMPT);
+    expect(turn.eventsFor("chat:response:error")).toHaveLength(0);
+
+    const memories = harness.db.select().from(memoryItems).all();
+    const errorPattern = memories.find((m) => m.category === "errorPattern");
+    expect(errorPattern?.body).toContain("US-1/AC-1");
+
+    const events = harness.db.select().from(governanceRunEvents).all();
+    expect(events.some((e) => e.type === "memory_recorded")).toBe(true);
   }, 60_000);
 });
