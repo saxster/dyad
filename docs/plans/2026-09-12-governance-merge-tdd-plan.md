@@ -465,7 +465,7 @@ Reference: `ANVIL` `TaskGraphOrchestrator`, `BackPressurePolicy` (max 4 runners)
       Seam S1. Files: test + impl `src/governance/core/task_graph.ts`.
       RED: `it("orders nodes topologically and rejects cycles")`; `it("computes ready set as nodes with all deps completed")`.
 
-- [ ] **T9.2 Backpressure.**
+- [x] **T9.2 Backpressure.**
       Same files. RED: `it("caps concurrent runners at 4 and admits queued nodes on completion")` — simulated executor, assert max observed concurrency and final order respects deps.
 
 - [ ] **T9.3 Extract worktree isolation utility.**

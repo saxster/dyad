@@ -75,3 +75,70 @@ export function readySet(
   }
   return ready;
 }
+
+/**
+ * Runs every node through `runner`, keeping at most `maxConcurrent` runners
+ * in flight and admitting queued nodes as in-flight ones complete. A node
+ * starts only once all of its dependencies have completed. The first runner
+ * rejection propagates. Resolves with the results aligned to
+ * `topoOrder(nodes)` (which also rejects cyclic graphs).
+ */
+export function runWithBackpressure<T>(
+  nodes: TaskNode[],
+  {
+    runner,
+    maxConcurrent = 4,
+  }: { runner: (node: TaskNode) => Promise<T>; maxConcurrent?: number },
+): Promise<T[]> {
+  const order = topoOrder(nodes);
+  const byId = new Map(nodes.map((node) => [node.id, node]));
+
+  return new Promise((resolve, reject) => {
+    const completed = new Set<string>();
+    const launched = new Set<string>();
+    const results = new Map<string, T>();
+    const inFlight = new Set<Promise<void>>();
+    let failure: { error: unknown } | undefined;
+
+    const settleIfDone = () => {
+      if (completed.size === nodes.length) {
+        resolve(order.map((id) => results.get(id)!));
+      }
+    };
+
+    const pump = () => {
+      if (failure) {
+        return;
+      }
+      const ready = readySet(nodes, completed);
+      for (const id of order) {
+        if (inFlight.size >= maxConcurrent) {
+          break;
+        }
+        if (!ready.has(id) || launched.has(id)) {
+          continue;
+        }
+        launched.add(id);
+        const run = runner(byId.get(id)!)
+          .then((result) => {
+            inFlight.delete(run);
+            results.set(id, result);
+            completed.add(id);
+            pump();
+            settleIfDone();
+          })
+          .catch((error: unknown) => {
+            inFlight.delete(run);
+            if (!failure) {
+              failure = { error };
+              reject(error);
+            }
+          });
+        inFlight.add(run);
+      }
+      settleIfDone();
+    };
+
+    pump();
+  });
+}
