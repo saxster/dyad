@@ -408,7 +408,7 @@ Reference: `ANVIL` `ProjectMemoryStore` (3 tiers, 5 categories: auditHistory, us
       RED: `it("ranks by importance × recency decay")` — item A importance 9 age 30d vs B importance 5 age 1h → order depends on decay half-life 7d; exact expected order computed from a worked example in the test (independent source of truth: hand-computed numbers, not the formula).
       GREEN: `rankMemories(items, now)`.
 
-- [ ] **T7.4 `record_memory` tool.**
+- [x] **T7.4 `record_memory` tool.**
       Seam S5. Files: tool + test, `defaultConsent: "always"` for `userDecision`/`styleInference`, `"ask"` otherwise.
       RED: `it("stores a memory with tier and category validation")`; `it("rejects unknown categories")`.
 
