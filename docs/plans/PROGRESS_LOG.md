@@ -217,3 +217,24 @@ Deviations recorded (all consistent with the parent plan's semantics):
      (`server_dump.ts maskSystemMessages`), so the integration test asserts the memory marker
      against the raw recorded request via `ServerDumpResult.dumpPath` instead of the masked
      `text` projection.
+
+## 2026-09-13 — Phase 8 gate PASSED
+
+- T8.1–T8.8 complete and pushed: backend event/task/`GovernedBackend` protocol + builtin
+  passthrough (T8.1), `detectCli` with numeric dot-compare minimums (claude ≥ 2.0.0,
+  codex ≥ 0.100.0) and a module-level TTL cache (T8.2), the Claude Code ndjson backend with
+  env allowlist (PATH/HOME/LANG/LC*ALL/TMPDIR/SHELL only), `--resume` session argv, and
+  timeout kill (T8.3), the Codex ndjson JSON-RPC backend (`task.start`/`task.started`/
+  `task.output`/`task.completed`/`error`, `codex exec --json` argv, exported serialize/parse
+  framing helpers, T8.4), the skill materializer with frontmatter-injection rejection and
+  try/finally cleanup (T8.5), the session resumption store (0o600 files, 24h expiry, T8.6),
+  the tier-routing registry (architectural → builtin always; highest-scoring available
+  external otherwise, T8.7), and `dispatchGovernedTask` recording `backend*<type>` lifecycle
+  events on the app's latest governance run (T8.8).
+- Gate result: `npm run ts` exit 0; fmt/lint clean (0 errors); consolidated Phase 8 batch
+  9 suites / 125 tests green, including both integration suites
+  (`chat_stream_handlers.governance.integration.test.ts` 8/8,
+  `chat_stream_handlers.test.ts` 92/92).
+- Environment note: `npm run db:generate` regenerates cleanly; `rules/windows-spawn.md`
+  read before T8.2 (backend spawns stay on argv-style `spawn` with no `cmd.exe`
+  interpolation; tests inject the spawn seam per S3).
