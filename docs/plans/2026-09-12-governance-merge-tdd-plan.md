@@ -440,7 +440,7 @@ Reference: `ANVIL/anvil-macOS/Core/AgentBackend/` (protocol + registry + `SkillM
 - [x] **T8.4 Codex backend.**
       Same pattern. RED: JSON-RPC over stdio framing parse/serialize round-trip; dispatch → events.
 
-- [ ] **T8.5 Skill materializer.**
+- [x] **T8.5 Skill materializer.**
       Seam S2. Files: `skill_materializer.ts` + test.
       RED: `it("writes SKILL.md files to provider skill dirs and cleans up after")` — claude `.claude/skills/<id>/SKILL.md`, codex `.codex/skills/...`; YAML frontmatter escaped (injection attempt with `---` and quotes is neutralized); cleanup via defer-equivalent finally.
 
