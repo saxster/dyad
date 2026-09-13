@@ -433,7 +433,7 @@ Reference: `ANVIL/anvil-macOS/Core/AgentBackend/` (protocol + registry + `SkillM
       Seam S3 (process). Files: `src/governance/backends/cli_detect.ts` + test with injected `runCommand`.
       RED: `it("detects claude/codex binaries and validates semver minimums")` (claude ≥2.0.0, codex ≥0.100.0 — parse `--version` outputs; missing → unavailable; cache 5 min).
 
-- [ ] **T8.3 Claude Code backend.**
+- [x] **T8.3 Claude Code backend.**
       Seam S3/S6. Files: `claude_code_backend.ts` + test with fake process.
       RED: `it("spawns claude with stream-json prompt and parses event stream")` — assert argv (`--print`, `--output-format`, `stream-json`, `--resume` when session id exists), env sanitization, event translation; timeout enforcement test.
 
