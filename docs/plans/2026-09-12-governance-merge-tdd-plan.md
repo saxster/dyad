@@ -527,7 +527,7 @@ Reference: `ANVIL` `AnvilCoreSDK`, `RPCServer` (unix socket JSON-RPC), `Headless
       Files: `scripts/dyadctl.mjs` (node, no electron) + test invoking it as a subprocess: commands `run --app <dir> --prompt <str|-> --json` → executes a governed run headlessly (builtin backend, local model config from env) and prints `{ status, verifications, versions }`.
       RED: subprocess test against a fixture Vite app with one passing contract.
 
-- [ ] **T11.3 Unix-socket RPC server.**
+- [x] **T11.3 Unix-socket RPC server.**
       Seam S3. Files: `src/governance/headless/rpc_server.ts` + test — JSON-RPC `initialize|execute|status|shutdown` over `node:http` on a tmp socket path; owner-only perms (stat mode 0o700); 1 MB request cap.
 
 - [ ] **T11.4 RPC ↔ engine wiring.**
