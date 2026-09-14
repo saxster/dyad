@@ -70,3 +70,41 @@ governance routing/approval/gates wired into `chat_stream_handlers`,
 and the red-first verification spine. Env flags introduced by this fork:
 `DYAD_GOVERNANCE_FAKE_BACKEND=1` (DAG fast path over an approved bundle's
 task manifest), `GOVERNANCE_FORK=1` (strip-down gates, Phase 12).
+
+## Final state (program close-out, 2026-09-14)
+
+Cord-cut hash: `aa7e30f018fde8502e0c15a26cab6231d437430f` (upstream last
+absorbed: `d6cebfc7`). All parent-plan phases 0–12 are complete; T12.2 was
+closed as a no-op on the owner's local-deployment confirmation.
+
+Deliberate deltas vs upstream (complete list):
+
+1. Governance spine in `src/governance/**`: lane screening, spec bundles +
+   approval, red-first verification (probe → check) with a process-group
+   timeout contract runner and a deny-then-allow safety gate (`touch `
+   added in P9 for the DAG marker executor), councils, project memory,
+   multi-runtime backends, DAG orchestration, incubation/thoughts, and the
+   headless stack (`scripts/dyadctl.mjs`, unix-socket RPC, issue-intake
+   autopilot).
+2. Migrations 0051 (`spec_verifications.kind`), 0052 (`council_verdicts`),
+   0053 (`memory_items`), 0054 (`thoughts`/`thought_links`) on top of
+   upstream's set.
+3. T7.4 deviation: `record_memory` consent is per-tool (`"ask"`) rather
+   than the parent plan's per-category consent — `defaultConsent` is
+   per-tool, so per-category would have required new machinery.
+4. T7.3 correction: the ranking decay constant is 0.461 (formula-derived),
+   not the companion's hand-worked 0.462.
+5. Cloud-free posture: `GOVERNANCE_FORK=1` no-ops telemetry and releases
+   the free-agent quota and auto-updater; `DYAD_GOVERNANCE_FAKE_BACKEND=1`
+   runs governed turns through the DAG marker executor.
+6. Database direction: generic latest Postgres (decision memo
+   `docs/plans/self-hosted-postgres.md`, integration plan
+   `docs/plans/generic-postgres-integration-plan.md`); Neon/Supabase stay
+   in the tree until the follow-up program replaces them.
+7. Boundary inventory: the governance dispatch sites are pinned as
+   non-remote access in `src/distributed_machines/boundary_inventory.test_support.ts`.
+
+Known machine-environment test caveats (documented in
+`docs/plans/PROGRESS_LOG.md`): the Appendix A set plus git-subprocess
+suites that time out under parallel load on this machine (they pass idle
+or on other machines; identical failures occur on a clean main worktree).

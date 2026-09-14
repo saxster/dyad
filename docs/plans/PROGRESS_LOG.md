@@ -352,3 +352,54 @@ P5–P8 passed, first unchecked task T9.1.
   T12.3 spec requires is spawned at
   `docs/plans/generic-postgres-integration-plan.md` (implementation is a
   separate, unscheduled program per "do not wing it here").
+
+## 2026-09-14 — Phase 12 gate PASSED — PROGRAM CLOSE-OUT (T12.6)
+
+- T12.4 telemetry strip: `GOVERNANCE_FORK=1` no-ops all three senders at
+  module load (RED-first in the telemetry suite with resetModules + a
+  throwing fetch; default paths untouched, 14/14). T12.5 quota/auto-update
+  gates: `isGovernanceFork()` (new preload-safe `src/shared/governance_fork.ts`)
+  reports unlimited free-agent quota — skipping the api.dyad.sh server-time
+  fetch — and main.ts skips `updateElectronApp` under the flag (verified by
+  ts + build; runtime updater suppression is manual-verification only,
+  which is moot for a fork always run with the flag set).
+- T12.2 closed no-op and T12.3 decided (generic latest Postgres, follow-up
+  plan spawned) — see the owner-resolution entry above.
+- Close-out gate: `npm run ts` exit 0; fmt/lint clean; FULL `npm test`
+  736/753 files green with `npm test` exiting after the classified failures;
+  `npm run build` ✓. Failure accounting this run: Appendix A verbatim (8
+  files, unchanged since P11); the remainder were the documented load-flake
+  classes — every non-Appendix-A failing file was re-run and PASSED alone
+  (pause/context/github/app-details/settings family, plus this run's
+  hybrid_chat_harness.guard, plan_mode, subscription_status_banner,
+  mutation_invalidation, theme_selection, supabase_stale_ui,
+  chat_flow_harness.dispose). The P11-time failures git_changed_files,
+  agent_git_utils, review_target, run_build and boundary_inventory all
+  PASSED this run — confirming the load-flake classification.
+- Parent-plan §7 definition of done: governed chat with verified
+  checkpoints (P5 ✓), standalone `sh .dyad/bin/verify-*.sh` (T5.9 ✓),
+  headless `dyadctl` on a fixture app (T11.2 + P11 smoke ✓), deployment
+  validation — superseded by the owner's local-only decision (the runbook
+  is retained as reference; the Hostinger run will not happen), and
+  `GOVERNANCE_FORK.md` + retro (this entry).
+
+## 2026-09-14 — Program retro
+
+- What worked: the RED→GREEN loop with hand-worked expected values kept
+  every task honest and cheap to resume across sessions; the seam registry
+  (S1–S10) meant new tasks almost never needed new harness decisions; the
+  delta-on-companion plan structure caught spec gaps (BackendEvent.file,
+  the `touch` allow-prefix, manifest seeding) before they cost sessions.
+- What bit us: (1) near-identical identifier transcription under fatigue
+  produced recurring self-inflicted bugs — the fix was mechanical grep
+  verification instead of eyeballing; (2) the E2E/CI-less environment made
+  full-suite runs ~13 minutes, so gate discipline mattered and
+  load-flakiness of git-subprocess and happy-dom suites repeatedly masquer-
+  aded as regressions — the clean-main-worktree comparison is the tool
+  that settles it every time; (3) HTTP keep-alive pooling across RPC
+  server instances produced one genuinely confusing EPIPE (agent:false in
+  the test client fixed it).
+- Environment quirks: sandbox denies /var/folders writes (TMPDIR override
+  - unsandboxed builds/tests); `npm test`'s node --test pre-chain shares
+    the sandbox restriction and must run unsandboxed; the graphify machine
+    hook keeps an untracked `graphify-out/` that is never staged.

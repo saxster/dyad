@@ -556,7 +556,7 @@ Reference: `ANVIL` `AnvilCoreSDK`, `RPCServer` (unix socket JSON-RPC), `Headless
 - [x] **T12.5 Strip quota/auto-update gates.**
       Files: free-quota handlers + auto-update wiring. RED: tests asserting quota endpoints return unlimited and update check is a no-op behind `GOVERNANCE_FORK` flag. Do not delete files — no-op them (cheaper, reversible).
 
-- [ ] **T12.6 Program close-out.**
+- [x] **T12.6 Program close-out.**
       `npm run ts && npm run lint && npm run fmt && npm test && npm run build` all green; update `GOVERNANCE_FORK.md` with final state; mark every box in this file; write a retro in `docs/plans/PROGRESS_LOG.md`.
 
 ---
