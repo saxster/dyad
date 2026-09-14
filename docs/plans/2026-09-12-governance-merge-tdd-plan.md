@@ -553,7 +553,7 @@ Reference: `ANVIL` `AnvilCoreSDK`, `RPCServer` (unix socket JSON-RPC), `Headless
 - [x] **T12.4 Strip telemetry.**
       Files: replace PostHog calls with a no-op shim preserving exports (grep `posthog` across src). RED first: a unit test asserting the shim's `sendTelemetryEvent` resolves without network. Existing tests must stay green.
 
-- [ ] **T12.5 Strip quota/auto-update gates.**
+- [x] **T12.5 Strip quota/auto-update gates.**
       Files: free-quota handlers + auto-update wiring. RED: tests asserting quota endpoints return unlimited and update check is a no-op behind `GOVERNANCE_FORK` flag. Do not delete files — no-op them (cheaper, reversible).
 
 - [ ] **T12.6 Program close-out.**

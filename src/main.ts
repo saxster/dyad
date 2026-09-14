@@ -17,6 +17,7 @@ import { promisify } from "node:util";
 import { registerIpcHandlers } from "./ipc/ipc_host";
 import dotenv from "dotenv";
 import { updateElectronApp, UpdateSourceType } from "update-electron-app";
+import { isGovernanceFork } from "./shared/governance_fork";
 import log from "electron-log";
 import {
   getSettingsFilePath,
@@ -627,15 +628,18 @@ export async function onReady() {
       logger.error("Auto-updater error:", error);
       recordUpdaterError(error);
     });
-    updateElectronApp({
-      logger,
-      updateInterval: "60 minutes",
-      updateSource: {
-        type: UpdateSourceType.ElectronPublicUpdateService,
-        repo: "dyad-sh/dyad",
-        host,
-      },
-    }); // additional configuration options available
+    // The governance fork runs locally: no phoning the update service.
+    if (!isGovernanceFork()) {
+      updateElectronApp({
+        logger,
+        updateInterval: "60 minutes",
+        updateSource: {
+          type: UpdateSourceType.ElectronPublicUpdateService,
+          repo: "dyad-sh/dyad",
+          host,
+        },
+      }); // additional configuration options available
+    }
   }
 }
 

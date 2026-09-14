@@ -10,6 +10,7 @@ import { FREE_AGENT_QUOTA_LIMIT } from "@/lib/free_agent_quota_limit";
 import fetch from "node-fetch";
 import { withLock } from "../utils/lock_utils";
 import { shouldSimulateFreeAgentQuotaExceeded } from "../utils/free_agent_quota_fixture";
+import { isGovernanceFork } from "@/shared/governance_fork";
 
 const logger = log.scope("free_agent_quota_handlers");
 const FREE_AGENT_QUOTA_ADMISSION_LOCK = "free-agent-quota-admission";
@@ -189,6 +190,19 @@ export async function unmarkMessageAsUsingFreeAgentQuota(
  * since the oldest message was sent (not a rolling window).
  */
 export async function getFreeAgentQuotaStatus() {
+  // The governance fork runs locally with no quota gate behind it: report
+  // unlimited without touching the quota window or the server-time fetch.
+  if (isGovernanceFork()) {
+    return {
+      messagesUsed: 0,
+      messagesLimit: Number.MAX_SAFE_INTEGER,
+      isQuotaExceeded: false,
+      windowStartTime: null,
+      resetTime: null,
+      hoursUntilReset: null,
+    };
+  }
+
   if (shouldSimulateFreeAgentQuotaExceeded()) {
     const now = Date.now();
     return {
