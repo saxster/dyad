@@ -545,7 +545,7 @@ Reference: `ANVIL` `AnvilCoreSDK`, `RPCServer` (unix socket JSON-RPC), `Headless
 - [x] **T12.1 Coolify-on-VPS validation runbook.**
       Files: `docs/plans/hostinger-coolify-runbook.md` — manual: install Coolify on the Hostinger VPS, point Dyad's Coolify setup (`src/coolify_setup/`) at it, deploy one fixture app, custom domain. Record every gap hit.
 
-- [ ] **T12.2 Fix the first gap found.** (Placeholder — becomes a concrete TDD task from T12.1 findings; if no gap, close as no-op with evidence.)
+- [x] **T12.2 Fix the first gap found.** (Closed as no-op 2026-09-14: owner confirmed the program runs locally, not on a cloud VPS — no validation run, no gap log. Evidence quoted in PROGRESS_LOG.)
 
 - [x] **T12.3 Generic Postgres decision memo.**
       Files: `docs/plans/self-hosted-postgres.md` — audit `src/neon_admin/`, `get_neon_project_info` tool, `DATABASE_URL` flows; decide: (a) keep Neon, (b) generic-Postgres integration. If (b): spawn a follow-up plan (do not wing it here).

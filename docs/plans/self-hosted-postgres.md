@@ -1,7 +1,11 @@
 # Self-hosted Postgres decision memo (generic Postgres vs Neon)
 
-Status: **DRAFT for owner decision** (T12.3 owner checkpoint). This memo
-presents the options and their blast radius; **no choice is made here**.
+Status: **DECIDED (2026-09-14).** The owner chose **option (b): generic
+latest Postgres** — no Neon, no Supabase, no other database vendor — for a
+program that **runs locally, not in the cloud**. The follow-up integration
+plan this decision spawns lives at
+`docs/plans/generic-postgres-integration-plan.md`. The audit below is
+retained as the decision's basis.
 
 Question: this fork ships with first-class Neon integration (provisioning,
 branching, schema context for the agent). For the private/self-hosted

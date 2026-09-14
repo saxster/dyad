@@ -337,3 +337,18 @@ P5–P8 passed, first unchecked task T9.1.
      access. Pinned in nonRemoteDispatchOrEnqueueInventory; suite now 23/23.
 - Deviation note: T11.5+T11.6 ship as one commit (same module per the companion's file
   list); T11.1's checkbox was ticked retroactively in that commit (missed in its own).
+
+## 2026-09-14 — Owner checkpoints resolved; T12.2 closed no-op; T12.3 decided
+
+- Owner input (2026-09-14, verbatim): "this program will run locally not in
+  the cloud" and "keep generic latest Postgres not Neon/Supabase etc".
+- T12.2 CLOSED NO-OP per that confirmation: the program's deployment target
+  is local, so the Hostinger/Coolify-VPS validation run (and its gap log)
+  will not happen; there are no VPS validation gaps to fix. The runbook is
+  retained as reference documentation.
+- T12.3 DECIDED: option (b) — generic latest Postgres, no Neon/Supabase or
+  any database vendor. Decision recorded in
+  `docs/plans/self-hosted-postgres.md`; the follow-up integration plan the
+  T12.3 spec requires is spawned at
+  `docs/plans/generic-postgres-integration-plan.md` (implementation is a
+  separate, unscheduled program per "do not wing it here").
