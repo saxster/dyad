@@ -1,5 +1,5 @@
 import type { BrowserWindow } from "electron";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const sent = vi.hoisted(() => ({
   calls: [] as Array<Record<string, unknown>>,
@@ -19,6 +19,7 @@ vi.mock("electron", () => ({
 }));
 import { DyadError, DyadErrorKind } from "@/errors/dyad_error";
 import {
+  sendTelemetryEvent,
   sendTelemetryEventToWindow,
   sendTelemetryException,
   shouldFilterTelemetryException,
@@ -133,12 +134,50 @@ describe("shouldFilterTelemetryException", () => {
   });
 });
 
-describe("sendTelemetryEventToWindow", () => {
+describe("default (stripped) senders", () => {
+  it("no-ops every sender without touching a window", () => {
+    const send = vi.fn();
+    const target = { webContents: { send } } as unknown as BrowserWindow;
+
+    sendTelemetryEvent("app:crash_detected", { error: true });
+    sendTelemetryEventToWindow(target, "app:crash_detected", { error: true });
+    sendTelemetryException(new Error("boom"));
+
+    expect(send).not.toHaveBeenCalled();
+    expect(sent.calls).toHaveLength(0);
+  });
+});
+
+/**
+ * A cloud-enabled module instance, for testing the send paths this fork
+ * strips by default. GOVERNANCE_FORK=0 restores the upstream behavior.
+ */
+async function cloudEnabledTelemetry() {
+  vi.resetModules();
+  process.env.GOVERNANCE_FORK = "0";
+  return await import("@/ipc/utils/telemetry");
+}
+
+describe("cloud-enabled senders (GOVERNANCE_FORK=0)", () => {
+  let cloud: typeof import("@/ipc/utils/telemetry");
+
+  beforeEach(async () => {
+    sent.calls.length = 0;
+    cloud = await cloudEnabledTelemetry();
+  });
+
+  afterEach(() => {
+    delete process.env.GOVERNANCE_FORK;
+    vi.resetModules();
+  });
+
   it("sends through the selected product window", () => {
     const send = vi.fn();
     const target = { webContents: { send } } as unknown as BrowserWindow;
 
-    sendTelemetryEventToWindow(target, "app:crash_detected", { error: true });
+    cloud.sendTelemetryEventToWindow(target, "app:crash_detected", {
+      error: true,
+    });
 
     expect(send).toHaveBeenCalledWith("telemetry:event", {
       eventName: "app:crash_detected",
@@ -154,12 +193,20 @@ describe("sendTelemetryEventToWindow", () => {
  * rather than audited throw site by throw site.
  */
 describe("exceptions from a self-hosted instance", () => {
-  beforeEach(() => {
+  let cloud: typeof import("@/ipc/utils/telemetry");
+
+  beforeEach(async () => {
     sent.calls.length = 0;
+    cloud = await cloudEnabledTelemetry();
+  });
+
+  afterEach(() => {
+    delete process.env.GOVERNANCE_FORK;
+    vi.resetModules();
   });
 
   it("reports the error without its message", () => {
-    sendTelemetryException(
+    cloud.sendTelemetryException(
       new Error("getaddrinfo ENOTFOUND coolify.internal.example.com"),
       { ipc_channel: "coolify:discover" },
     );
@@ -179,7 +226,7 @@ describe("exceptions from a self-hosted instance", () => {
     // Its failures quote the installer's own output, the server's address, and
     // the address the user signs in with. The prefix differs from the deploy
     // channels by one word, which is all it took to miss the filter.
-    sendTelemetryException(
+    cloud.sendTelemetryException(
       new Error(
         "Installing Coolify failed. The server said: connect ECONNRESET " +
           "203.0.113.5:22 for someone@theirdomain.com",
@@ -197,7 +244,7 @@ describe("exceptions from a self-hosted instance", () => {
   });
 
   it("keeps the message for every other channel", () => {
-    sendTelemetryException(new Error("something broke"), {
+    cloud.sendTelemetryException(new Error("something broke"), {
       ipc_channel: "apps:list",
     });
 
@@ -206,7 +253,7 @@ describe("exceptions from a self-hosted instance", () => {
 });
 
 describe("governance fork telemetry strip", () => {
-  it("resolves without network or window sends when GOVERNANCE_FORK=1", async () => {
+  it("resolves without network or window sends even with GOVERNANCE_FORK=1", async () => {
     vi.resetModules();
     process.env.GOVERNANCE_FORK = "1";
     const originalFetch = global.fetch;

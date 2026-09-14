@@ -28,11 +28,14 @@ The program runs **locally, not in the cloud** (owner decision,
 2026-09-14). The database direction is **generic latest Postgres** — no
 Neon, no Supabase (see `docs/plans/generic-postgres-integration-plan.md`).
 
-Opt-in flags this fork adds:
+Cloud-stripping is the **default** (owner decision, 2026-09-14): the
+program runs locally with zero setup — telemetry senders no-op, the
+free-agent quota gate is released, and the auto-updater never runs.
 
-- `GOVERNANCE_FORK=1` — releases the cloud paths: telemetry senders no-op
-  (no renderer PostHog traffic) and the free-quota / auto-update cloud
-  gates are released. Set this when running the fork locally.
+The only knob:
+
+- `GOVERNANCE_FORK=0` — restores the upstream cloud paths (telemetry
+  pipeline, quota accounting, updater) for debugging.
 - `DYAD_GOVERNANCE_FAKE_BACKEND=1` — governed turns execute an approved
   bundle's task manifest through the DAG orchestrator instead of calling
   an LLM.
@@ -69,7 +72,7 @@ governance routing/approval/gates wired into `chat_stream_handlers`,
 (0052), `memory_items` (0053), per-tool consent default for `record_memory`,
 and the red-first verification spine. Env flags introduced by this fork:
 `DYAD_GOVERNANCE_FAKE_BACKEND=1` (DAG fast path over an approved bundle's
-task manifest), `GOVERNANCE_FORK=1` (strip-down gates, Phase 12).
+task manifest), `GOVERNANCE_FORK` (strip-down gates, Phase 12 — the default is stripped; `=0` restores cloud paths).
 
 ## Final state (program close-out, 2026-09-14)
 
@@ -94,9 +97,11 @@ Deliberate deltas vs upstream (complete list):
    per-tool, so per-category would have required new machinery.
 4. T7.3 correction: the ranking decay constant is 0.461 (formula-derived),
    not the companion's hand-worked 0.462.
-5. Cloud-free posture: `GOVERNANCE_FORK=1` no-ops telemetry and releases
-   the free-agent quota and auto-updater; `DYAD_GOVERNANCE_FAKE_BACKEND=1`
-   runs governed turns through the DAG marker executor.
+5. Cloud-free posture (default): telemetry is no-oped, the free-agent
+   quota gate is released, and the auto-updater never runs.
+   `GOVERNANCE_FORK=0` restores the upstream cloud paths;
+   `DYAD_GOVERNANCE_FAKE_BACKEND=1` runs governed turns through the DAG
+   marker executor.
 6. Database direction: generic latest Postgres (decision memo
    `docs/plans/self-hosted-postgres.md`, integration plan
    `docs/plans/generic-postgres-integration-plan.md`); Neon/Supabase stay

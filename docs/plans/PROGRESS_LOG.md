@@ -403,3 +403,19 @@ P5–P8 passed, first unchecked task T9.1.
   - unsandboxed builds/tests); `npm test`'s node --test pre-chain shares
     the sandbox restriction and must run unsandboxed; the graphify machine
     hook keeps an untracked `graphify-out/` that is never staged.
+
+## 2026-09-14 — Amendment: cloud-stripping is the DEFAULT (owner decision)
+
+- Owner: "set it as the default — the program should just run with zero
+  admin for me to do." `isGovernanceFork()` (and the telemetry module's
+  module-load read) now default TRUE; `GOVERNANCE_FORK=0` is the only knob
+  that restores the upstream cloud paths (telemetry, quota accounting,
+  updater).
+- Tests updated to the new default: the telemetry suite asserts the
+  stripped senders on the static import and exercises the send paths via a
+  cloud-enabled instance (resetModules + GOVERNANCE_FORK=0); the quota
+  suite covers unlimited-by-default plus GOVERNANCE_FORK=0 normal
+  accounting. Verified: ts exit 0, fmt/lint clean, telemetry 15/15, quota
+  3/3, chat_turn_acceptance + quota fixture + chat_stream_handlers
+  (99 tests) green. `DYAD_GOVERNANCE_FAKE_BACKEND` stays opt-in (it swaps
+  the LLM for the DAG marker executor and must never be ambient).

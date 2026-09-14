@@ -44,9 +44,24 @@ describe("free agent quota status under the governance fork flag", () => {
     }
   });
 
-  it("keeps normal accounting when the flag is unset", async () => {
+  it("stays unlimited by default when the env var is unset", async () => {
     const db: TestDb = createInMemoryTestDb();
     setDatabaseForTesting(db);
+    try {
+      const status = await getFreeAgentQuotaStatus();
+
+      expect(status.messagesLimit).toBe(Number.MAX_SAFE_INTEGER);
+      expect(status.isQuotaExceeded).toBe(false);
+    } finally {
+      setDatabaseForTesting(null);
+      db.$client.close();
+    }
+  });
+
+  it("restores normal accounting when GOVERNANCE_FORK=0", async () => {
+    const db: TestDb = createInMemoryTestDb();
+    setDatabaseForTesting(db);
+    process.env.GOVERNANCE_FORK = "0";
     try {
       const status = await getFreeAgentQuotaStatus();
 
@@ -55,6 +70,7 @@ describe("free agent quota status under the governance fork flag", () => {
       expect(status.isQuotaExceeded).toBe(false);
       expect(status.resetTime).toBeNull();
     } finally {
+      delete process.env.GOVERNANCE_FORK;
       setDatabaseForTesting(null);
       db.$client.close();
     }
