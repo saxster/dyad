@@ -550,7 +550,7 @@ Reference: `ANVIL` `AnvilCoreSDK`, `RPCServer` (unix socket JSON-RPC), `Headless
 - [x] **T12.3 Generic Postgres decision memo.**
       Files: `docs/plans/self-hosted-postgres.md` — audit `src/neon_admin/`, `get_neon_project_info` tool, `DATABASE_URL` flows; decide: (a) keep Neon, (b) generic-Postgres integration. If (b): spawn a follow-up plan (do not wing it here).
 
-- [ ] **T12.4 Strip telemetry.**
+- [x] **T12.4 Strip telemetry.**
       Files: replace PostHog calls with a no-op shim preserving exports (grep `posthog` across src). RED first: a unit test asserting the shim's `sendTelemetryEvent` resolves without network. Existing tests must stay green.
 
 - [ ] **T12.5 Strip quota/auto-update gates.**

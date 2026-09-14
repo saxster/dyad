@@ -13,6 +13,15 @@ import {
 } from "@/shared/coolify_error_names";
 
 const logger = log.scope("telemetry");
+
+/**
+ * The governance fork runs locally with no telemetry pipeline behind it.
+ * Read once at module load: when the flag is set the senders no-op before
+ * touching any window, so no event can reach a renderer PostHog (which
+ * would try to phone home).
+ */
+const IS_GOVERNANCE_FORK = process.env.GOVERNANCE_FORK === "1";
+
 const FILTERED_EXCEPTION_MESSAGES = new Set([
   "Supabase access token not found. Please authenticate first.",
 ]);
@@ -25,6 +34,9 @@ export function sendTelemetryEvent(
   eventName: string,
   properties?: Record<string, unknown>,
 ): void {
+  if (IS_GOVERNANCE_FORK) {
+    return;
+  }
   try {
     const windows = BrowserWindow.getAllWindows();
     if (windows.length > 0) {
@@ -40,6 +52,9 @@ export function sendTelemetryEventToWindow(
   eventName: string,
   properties?: Record<string, unknown>,
 ): void {
+  if (IS_GOVERNANCE_FORK) {
+    return;
+  }
   try {
     target.webContents.send("telemetry:event", {
       eventName,
@@ -57,6 +72,9 @@ export function sendTelemetryException(
   error: unknown,
   context?: Record<string, unknown>,
 ): void {
+  if (IS_GOVERNANCE_FORK) {
+    return;
+  }
   const err =
     error instanceof Error
       ? error

@@ -22,6 +22,21 @@ distributed externally.
 This fork is for **internal use only. No external distribution.** Do not
 publish, relicense, or redistribute the merged product.
 
+## Local-run posture
+
+The program runs **locally, not in the cloud** (owner decision,
+2026-09-14). The database direction is **generic latest Postgres** — no
+Neon, no Supabase (see `docs/plans/generic-postgres-integration-plan.md`).
+
+Opt-in flags this fork adds:
+
+- `GOVERNANCE_FORK=1` — releases the cloud paths: telemetry senders no-op
+  (no renderer PostHog traffic) and the free-quota / auto-update cloud
+  gates are released. Set this when running the fork locally.
+- `DYAD_GOVERNANCE_FAKE_BACKEND=1` — governed turns execute an approved
+  bundle's task manifest through the DAG orchestrator instead of calling
+  an LLM.
+
 ## Divergence from upstream
 
 Recorded at the Phase 9 cord-cut (see

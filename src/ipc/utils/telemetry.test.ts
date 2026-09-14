@@ -204,3 +204,35 @@ describe("exceptions from a self-hosted instance", () => {
     expect(sent.calls[0].exception_message).toBe("something broke");
   });
 });
+
+describe("governance fork telemetry strip", () => {
+  it("resolves without network or window sends when GOVERNANCE_FORK=1", async () => {
+    vi.resetModules();
+    process.env.GOVERNANCE_FORK = "1";
+    const originalFetch = global.fetch;
+    const networkFetch = vi.fn(() => {
+      throw new Error("network");
+    });
+    global.fetch = networkFetch as unknown as typeof fetch;
+    sent.calls.length = 0;
+    try {
+      const forked = await import("@/ipc/utils/telemetry");
+
+      expect(() => forked.sendTelemetryEvent("x", {})).not.toThrow();
+      forked.sendTelemetryEventToWindow(
+        { webContents: { send: vi.fn() } } as unknown as BrowserWindow,
+        "x",
+        {},
+      );
+      expect(forked.sendTelemetryException(new Error("boom"))).toBeUndefined();
+
+      // Nothing reached a renderer PostHog and nothing went near a network.
+      expect(sent.calls).toHaveLength(0);
+      expect(networkFetch).not.toHaveBeenCalled();
+    } finally {
+      global.fetch = originalFetch;
+      delete process.env.GOVERNANCE_FORK;
+      vi.resetModules();
+    }
+  });
+});
